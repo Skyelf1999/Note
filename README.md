@@ -1,4 +1,11 @@
 # Git Note
+
+### 个人token
+
+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
+
+
+
 ### 常用命令
 
 > 以下命令皆需Git Bash **进入库目录后** 使用
@@ -90,6 +97,16 @@
 > `origin` 为默认的自定义远程库代称
 
 ##### 3. 进行pull或push
+
+
+
+
+
+
+
+
+
+
 
 
 
