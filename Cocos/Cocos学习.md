@@ -735,6 +735,8 @@ soundToggleMenuItem:registerScriptTapHandler(menuCallback)
 
 ![Sprite](Cocos学习.assets/Sprite.png)
 
+![Sprite创建流程](Cocos学习.assets/Sprite创建流程.png)
+
 - Image：从文件中读取图片，生成缓冲数据供Texture2D使用
 - Texture2D：可被绘制的纹理
 - SpriteFrame：具有一定区域属性的纹理，精灵帧
@@ -745,9 +747,9 @@ soundToggleMenuItem:registerScriptTapHandler(menuCallback)
 
 ![image-20220605111949092](Cocos学习.assets/image-20220605111949092.png)
 
-##### 2. 常用方法
+##### 3. 常用方法
 
-- 创建
+- **创建
 
   - 基础创建：`local sprite = cc.Sprite:create()`
 
@@ -767,20 +769,22 @@ soundToggleMenuItem:registerScriptTapHandler(menuCallback)
 
   - 指定纹理创建：`local sprite = cc.Sprite:createWithTexture(texture,rect,rotated=false)`
 
+    > 也可以先创建空Sprite，再设置纹理
+  
     - 纹理：texture
     - 裁剪的矩形区域（可省略）：rect
     - 是否旋转纹理：rotated
 
   - 通过精灵帧创建：`local sprite = cc.Sprite:createWithSpriteFrame(frame)`
 
-    > `local sprite = display:newSprite()`
+    > 需要先获取精灵帧
 
   - **通过精灵帧名称创建：`local sprite = cc.Sprite:createWithSpriteFrameName(name)`
 
     > 需要先将 **坐标文件加入精灵帧缓存** ，具体在性能优化中介绍
 
   - 从缓存的图像帧创建：`local sprite = display:newSprite("# xxx.png")`
-
+  
     > 用#表示精灵帧
     >
   
@@ -819,7 +823,7 @@ soundToggleMenuItem:registerScriptTapHandler(menuCallback)
   ```
 
 
-##### 3. **性能优化
+##### 4. **性能优化
 
 - 纹理图集Texture Atlas
 
@@ -1157,7 +1161,7 @@ soundToggleMenuItem:registerScriptTapHandler(menuCallback)
 
 - 创建Animation对象：`local animation = cc.Animation:create()`
 - 获取组成动画的精灵帧：`local spriteFrame = spriteFrame:getSpriteFrameByName(name)`
-- 将精灵帧加入Animation：`animation:addSpriteFrame(sprite)`
+- 将精灵帧加入Animation：`animation:addSpriteFrame(spriteFrame)`
 - 设置相关参数
   - 帧间隔：`animation:setDelayPerUnit(float time)`
   - 动画执行完毕后是否还原：`animation:setRestoreOriginalFrame(true)`
@@ -1862,36 +1866,70 @@ end
 
   - 通过图片创建Texture2D图像：`local texture = tc:addImage("xxx.png")`
 
+    > 同时也会将图片加入纹理缓存
+
   - 创建精灵
 
-    ```lua
-    local sprite = cc.Sprite:create()			-- 空精灵
-    sprite:setTexture(texture)					-- 设置纹理图片
-    sprite:setTextureRect(cc.rect(o_x,o_y,w,h))	-- 裁剪范围
-    sprite:setPosition(cc.p(x,y))
-    layer:addChild(sprite)
-    ```
+    - 直接创建
+    
+      ```lua
+      local texture = tc:getTextureForKey("xxx.png")
+      local rect = Rect(ox,oy,width,height)
+      local sprite = cc.Sprite:createWithTexture(texture,rect,rotated=false)
+      ```
+    
+    - 先创建后设置
+    
+      ```lua
+      local sprite = cc.Sprite:create()			-- 空精灵
+      sprite:setTexture(texture)					-- 设置纹理图片
+      sprite:setTextureRect(cc.rect(o_x,o_y,w,h))	-- 裁剪范围
+      sprite:setPosition(cc.p(x,y))
+      layer:addChild(sprite)
+      ```
+    
 
 - **精灵帧缓存SpriteFrameCache
 
   - **获取实例：`local sfc  = cc.SpriteFrameCache:getInstance()`
 
-  - **载入列表文件：`sfc:addSpriteFrames("xxx.plist")`
+  - **载入文件
 
-    > 之后即可用 cc.Sprite:createWithSpriteFrameName("xxx.png")创建精灵了
+    - 将精灵帧加入缓存：`sfc:addSpriteFrame(SpriteFrame,"name")`
 
-  - **根据缓存帧创建精灵：`local sprite = sfc:getSpriteFrameByName(name) `
+      > 需要先获取精灵帧
 
+    - 载入列表：`sfc:addSpriteFrames("xxx.plist")`
+
+      > 之后即可用 cc.Sprite:createWithSpriteFrameName("xxx.png")创建精灵了
+
+  - **创建精灵
+
+    - 直接创建：`local sprite = cc.Sprite:createWithSpriteFrameName("xxx.png")`
+
+    - 使用精灵帧创建
+
+      ```lua
+      local frame = sfc:getSpriteFrameByName(name) 
+      local sprite = cc.Sprite:createWithSpriteFrame(frame)
+      ```
+  
+    - 先创建后设置
+  
+      ```lua
+      sprite:setSpriteFrame("xxx.png")
+      ```
+  
   - 清除
-
+  
     - `sfc:removeSpriteFramesFromFile("xxx/plist")`
-
+  
     - `sfc:removeSpriteFrameByName(name)`
-
+  
     - `sfc:removeUnusedSpriteFrames()`
-
+  
       > 会清除别的场景的精灵帧缓存
-
+  
     - `sfc:removeSpriteFrames()`
   
       > 会清除所有精灵帧缓存
