@@ -24,7 +24,7 @@ end
 
   > ```lua
   > for i,v in pairs(t) do
-  > 	print(i,v)
+  > 	print(i,v)	-- t[i]=v
   > end
   > ```
 
@@ -181,6 +181,8 @@ end
 > 可视为**存储预定义操作的table**
 >
 > 通过元表可修改一个值的行为，使其可以执行自定义的操作（例如table相加）
+>
+> 通常需要自行添加
 
 ##### 1. 查看元表：`getmetatable(t)`
 
@@ -204,43 +206,44 @@ end
 > Set = {}
 > local mt = {}   -- 元表
 > 
-> -- 创建新的集合，处于集合中的元素表现为：set[data]=true
+> -- 根据传入的数据，创建新的集合
+> -- 处于集合中的元素表现为：set[data]=true
 > function Set.new(l)
->     local set = {}
->     setmetatable(set,mt)    -- 将mt设置为当前所创建的table的元表
->     for _,v in ipairs(l) do
->         set[v] = true
->     end
->     return set
+>  local set = {}
+>  setmetatable(set,mt)    -- 将mt设置为当前所创建的table的元表
+>  for _,v in ipairs(l) do
+>      set[v] = true
+>  end
+>  return set
 > end
 > 
 > -- 并集
 > function Set.union(a,b)
->     local res = {}
->     for k in pairs(a) do res[k]=true end
->     for k in pairs(b) do res[k]=true end
->     return res
+>  local res = {}
+>  for k in pairs(a) do res[k]=true end
+>  for k in pairs(b) do res[k]=true end
+>  return res
 > end
 > 
 > -- 交集
 > function Set.intersection(a,b)
->     local res = Set.new{}
->     for k in pairs(a) do
->         res[k] = b[k]
->     end
->     return res
+>  local res = Set.new{}
+>  for k in pairs(a) do
+>      res[k] = b[k]
+>  end
+>  return res
 > end
 > 
 > -- 输出
 > function Set.tostring(set)
->     local l = {}
->     for e in pairs(set) do
->         l[#l+1] = e
->     end
->     return "{" .. table.concat(l,",") .. "}"
+>  local l = {}
+>  for e in pairs(set) do
+>      l[#l+1] = e
+>  end
+>  return "{" .. table.concat(l,",") .. "}"
 > end
 > function Set.print(s)
->     print(Set.tostring(s))
+>  print(Set.tostring(s))
 > end
 > 
 > -- 元方法
@@ -265,7 +268,7 @@ end
 
 ### 算数类的元方法
 
-> 优先调用前一个参数的元表
+> 当两个table进行运算时，优先调用前一个table的元表
 >
 > ```lua
 > -- 集合算术运算元方法
@@ -357,7 +360,10 @@ end
 
 > 使用**当前table和字段作为参数**，调用__index
 >
-> 新创建的w中没有width字段，于是调用元表中的 __index元方法
+> 新创建的w中没有width字段，于是调用元表中的 __index
+>
+> - 当__index对应一个方法时，传入table和字段
+> - 当__idnex对一个table时，在此table中寻找字段对应的值
 >
 > 在此例中，程序将在 Window.prototype 中寻找此字段
 >
@@ -632,6 +638,10 @@ print("原先环境的变量a = " .. _G.a)		 --> 1
 
 ##### 2. 具体行为
 
+>  初次require时，结果保存在package.loaded中
+>
+> 之后再次require时，直接从package.loaded中获取
+
 ```lua
 function require(name)
 	if not package.loaded[name] then 		-- 如果未加载
@@ -678,9 +688,9 @@ end
 local M = {}
 
 --complex = M
-local modname = ...				-- 避免写模块名，require会将模块名作为参数传入
+local modname = ...			-- 避免写模块名，require会将模块名作为参数传入
 _G[modname] = M                 
-package.loaded[modname] = M     -- 直接将模块table赋予package.loaded，不必再return
+package.loaded[modname] = M    -- 直接将模块table赋予package.loaded，不必再return
 
 M.i = {r=0, i=1}
 
@@ -740,15 +750,49 @@ setfenv(1,M)
 
 ### module函数
 
-> 使用module函数替代基础配置
+- 定义模块：`module("模块名",package.seeall)`
 
-```
-module(...,package.seeall)
-```
+  > 使用module函数替代基础配置
+  >
+  > 模块不必再return用于访问的table
+
+  ```lua
+  module("complex_2",package.seeall)
+  
+  i = {r=0, i=1}
+  
+  -- 复数构造
+  function new(r,i)
+      local new_c = {r=r, i=i}
+      local mt = {__tostring = function(c)
+          return r.. ", " ..i.." *i"
+      end
+      }
+      setmetatable(new_c,mt)
+      return new_c
+  end
+  
+  -- 复数相加
+  function add(c1,c2)
+      return new(c1.r+c2.r, c1.i+c2.i)
+  end
+  ```
+
+- 访问：`模块名.方法`
+
+  ```lua
+  require("test_modul.complex_2")
+  c_3 = complex_2.new(1,3)
+  print(c_3)		--> 1, 3 *i
+  ```
+
+  
 
 
 
 ### 子模块与包
+
+
 
 ------
 
