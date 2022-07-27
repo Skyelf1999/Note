@@ -1,10 +1,5 @@
 # Git Note
 
-### 个人token
-
-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
-
-
 
 ### 常用命令
 
