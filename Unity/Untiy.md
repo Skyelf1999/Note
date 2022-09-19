@@ -158,6 +158,14 @@ public class FirstSpell : MonoBehaviour
 
 > `Rigidbody rb = other.gameObject.GetComponent<Rigidbody>();`
 
+##### 颜色Color
+
+##### 委托判存与发布
+
+```c#
+委托?.Invoke()
+```
+
 
 
 ### 游戏对象类
@@ -256,6 +264,18 @@ void Update()
     else if (Input.GetKey(KeyCode.D)) transform.Translate(v * Time.deltaTime, 0, 0);
     else if (Input.GetKey(KeyCode.Space)) transform.Translate(0, v* Time.deltaTime, 0);
     else if (Input.GetKey(KeyCode.LeftControl)) transform.Translate(0, -v* Time.deltaTime, 0);
+}
+
+
+// 使用方向向量
+void FixedUpdate()
+{
+    if (Input.GetKey(KeyCode.W)) transform.Translate(Vector3.forward * Time.fixedDeltaTime * v);
+    else if (Input.GetKey(KeyCode.S)) transform.Translate(Vector3.back * Time.fixedDeltaTime * v);
+    else if (Input.GetKey(KeyCode.A)) transform.Translate(Vector3.left * Time.fixedDeltaTime * v);
+    else if (Input.GetKey(KeyCode.D)) transform.Translate(Vector3.right * Time.fixedDeltaTime * v);
+    else if (Input.GetKey(KeyCode.Q)) transform.Rotate(Vector3.down);
+    else if (Input.GetKey(KeyCode.E)) transform.Rotate(Vector3.up);
 }
 ```
 
@@ -379,6 +399,8 @@ public class TestController : MonoBehaviour
 
 > 勾选 `Is Trigger` 后，将**仅作为碰撞触发器**，而 **不阻碍** 其他物体运动
 >
+> 常用于传送点等功能的实现
+>
 > ![image-20220828102837215](Untiy.assets/image-20220828102837215.png)
 
 ```c#
@@ -393,6 +415,12 @@ public class TestController : MonoBehaviour
     private void OnTriggerStay(Collision collision)
     {
         // 碰撞中
+        /*
+        	注意：
+        		一般需要在触发时持续判断的事件
+        		建议结合状态变量在Update中判断
+        		因为OnTriggerStay的执行频率不够高
+        */
     }
 
     private void OnTriggerExit(Collision collision)
@@ -451,7 +479,9 @@ public class TestController : MonoBehaviour
 
 ##### **射线检测
 
-> RaycastHit hitInfo
+> 需要先定义类成员：`RaycastHit hitInfo`
+>
+> 可用于仿真射击判定
 
 - 返回第一个对象：`bool res = Physics.Raycast(Vector3 origin, Vector3 dir,out hitInfo)`
 
@@ -484,7 +514,7 @@ public class TestController : MonoBehaviour
 
 - 返回所有对象：`RaycastHit[] res = Physics.RaycastAll`
 
-- 射线显示
+- 射线显示：`Debug.DrawRay(位置,方向与长度,颜色);`
 
   ```c#
   public void OnDrawGizmos()
