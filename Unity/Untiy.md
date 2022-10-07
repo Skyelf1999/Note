@@ -1434,7 +1434,49 @@ public class UIManager : MonoBehaviour
 
 
 
-### 特效
+### 粒子系统 Particle System
+
+##### 简单创建
+
+![image-20221006091103489](Untiy.assets/image-20221006091103489.png)
+
+##### **脚本控制
+
+- 获取组件：`ParticleSystem particle = GetComponent<ParticleSystem>();`
+- 进度控制
+  - 播放：`particle.Play();`
+  - 暂停：`particle.Pause();`
+  - 停止：`particle.Stop();`
+
+
+
+### 线条特效 Trail&Line
+
+##### 拖尾渲染器 Trail
+
+> 关键属性是滞留时间和渐变颜色
+>
+> 双击宽度可添加控制点
+
+##### 线渲染器
+
+- 获取组件：`LineRenderer line = GetComponent<LineRenderer>();`
+
+- 线条位置点
+
+  ![image-20221006094346720](Untiy.assets/image-20221006094346720.png)
+
+  - 设置总数量：`line.positionCount = x;`
+
+  - 设置中间点
+
+    > 可绘制函数曲线
+
+    - 单独设置：`line.SetPosition(length, Vector3 dir)`
+
+    - 集体设置:`line.SetPositions(Vector3[] positions);`
+
+      
 
 
 
