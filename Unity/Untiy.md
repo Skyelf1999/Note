@@ -401,11 +401,15 @@ private void MouseLock(bool choice)
 }
 ```
 
-##### 鼠标点击位置射线
+##### **鼠标点击移动
+
+> 
 
 ```c#
 Ray mouseRay;
-RaycastHit hitInfo;
+RaycastHit hitInfo;		// 存储射线检测信息
+NavMeshAgent agent = GetComponent<NavMeshAgent>();
+
 private void MouseClickRayDetect(Ray ray)
 {
     if (Physics.Raycast(ray, out hitInfo))
@@ -421,7 +425,10 @@ private void MouseClick()
         mouseRay = Camera.main.ScreenPointToRay(Input.mousePosition);
         MouseClickRayDetect(mouseRay);
     }
+    // 绘制
     Debug.DrawRay(mouseRay.origin, mouseRay.direction*20, Color.cyan);
+    // 移动
+    agent.SetDestination(hitInfo.point)
 }
 ```
 
@@ -784,10 +791,12 @@ public class TestController : MonoBehaviour
 
 ##### 射线Ray
 
+- 创建：
+
 - 起点：Vector3 origin
 - 方向：Vector3 direction
 
-##### **射线检测
+##### **射线检测Raycast
 
 > 非常常用！！！
 >
@@ -795,6 +804,16 @@ public class TestController : MonoBehaviour
 >
 > 可用于仿真射击判定
 
+- **检测结果**信息存储变量：`RaycastHit hitInfo`
+
+  > 用于接收检测到的第一个对象
+
+  - 碰撞体：`hitInfo.collider`
+    - 对象：`.gameObject`
+    - 对象名称：`.name`
+  - 碰撞点位置：`hitInfo.point`
+  - 碰撞面法线：`hitInfo.normal`
+  
 - **返回第一个对象**：
 
   - `bool res = Physics.Raycast(Vector3 origin, Vector3 dir,out hitInfo)`
@@ -805,32 +824,20 @@ public class TestController : MonoBehaviour
     > - int 层
 
   - `bool res = Physics.Raycast(Ray ray,out hitInfo)`
-
-
-  ```c#
-  public RaycastHit hitInfo;		// 定义类成员
   
-  void Update()
-  {
-      // 射线检测
-      if(Physics.Raycast(transform.position, new Vector3(4, 0, 0),out hitInfo,4))
-      {
-          print("射线碰撞检测："+hitInfo.collider.tag);
-      }
-  }
-  ```
+    ```c#
+    public RaycastHit hitInfo;		// 定义类成员
+    
+    void Update()
+    {
+        // 射线检测
+        if(Physics.Raycast(transform.position, new Vector3(4, 0, 0),out hitInfo,4))
+        {
+            print("射线碰撞检测："+hitInfo.collider.tag);
+        }
+    }
+    ```
 
-  - 射线起点 origin
-  - 方向 dir
-  - **检测结果** out RaycastHit hitInfo
-    
-    > 用于接收检测到的第一个对象
-    
-    - 碰撞体：`hitInfo.collider`
-      - 对象：`.gameObject`
-      - 对象名称：`.name`
-    - 碰撞点位置：`hitInfo.point`
-    - 碰撞面法线：`hitInfo.normal`
 
 - 返回所有对象：`RaycastHit[] res = Physics.RaycastAll`
 
@@ -845,9 +852,90 @@ public void OnDrawGizmos()
 }
 ```
 
+------
 
 
 
+
+
+
+
+# 导航系统Navigation
+
+> 使用A*算法
+
+### 地形处理
+
+##### 静态地形
+
+- 打开导航系统界面
+  ![image-20221015144541242](Untiy.assets/image-20221015144541242.png)
+- 设定**区域代价**
+  ![image-20221015144752141](Untiy.assets/image-20221015144752141.png)
+- 设定对象区域类型
+  ![image-20221015144848277](Untiy.assets/image-20221015144848277.png)
+- 设置主体属性，烘焙
+  ![image-20221015145910797](Untiy.assets/image-20221015145910797.png
+  ![image-20221015150715939](Untiy.assets/image-20221015150715939.png)
+
+##### 动态地形
+
+> 动态障碍物、可开关的门等
+
+- 移动障碍：``Nav Mesh Obstacle` `
+- 跳板：`off Mesh Link`
+
+
+
+### 导航控制
+
+##### 添加组件
+
+> Nav Mesh Agent
+
+![image-20221015150930320](Untiy.assets/image-20221015150930320.png)
+
+##### 脚本控制
+
+> `using UnityEngine.AI;`
+
+- 获取组件：`agent = GetComponent<NavMeshAgent>();`
+
+- **设置目标点**：`agent.SetDestination(Vector3 target)`
+
+  > 可与鼠标点击移动相结合
+
+  ```c#
+  public class PlayerController : MonoBehaviour
+  {
+      NavMeshAgent agent;
+      Ray mouseRay;
+      RaycastHit hitInfo;
+  
+  
+      void Start()
+      {
+          agent = GetComponent<NavMeshAgent>();
+      }
+  
+  
+      void Update()
+      {
+          if (Input.GetMouseButtonUp(1))
+          {
+              print("开始移动");
+              mouseRay = Camera.main.ScreenPointToRay(Input.mousePosition);
+              if (Physics.Raycast(mouseRay, out hitInfo)) agent.SetDestination(hitInfo.point);
+          }
+      }
+      
+  }
+  ```
+
+- 常用属性
+
+  - 是否在寻路中：`bool agent.hasPath`
+  - 当前速度：`Vector3 agent.velocity`
 
 
 
