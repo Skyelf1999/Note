@@ -1568,9 +1568,93 @@ public class UIManager : MonoBehaviour
 
 
 
-### 多媒体
+# 多媒体
+
+### 声音接收
+
+> Audio Listener
+>
+> **唯一**
 
 
+
+### 单一声源 AudioSource
+
+##### 添加组件
+
+> 在3D Sound Settings中可配置多普勒效应
+
+![image-20221016095113287](Untiy.assets/image-20221016095113287.png)
+
+##### 脚本控制
+
+- 获取组件：`AudioSource aSource = GetComponent<AudioSource>();`
+- 播放控制
+  - 播放：`aSource.Play();`
+  - 暂停：`aSource.Pause();`
+  - 停止：`aSource.Stop();`
+- 声音控制
+  - 音量：`float aSource.volume`
+  - 音调：`float aSource.pitch`
+
+
+
+### 混合声轨 AudioMixer
+
+##### 创建混合音轨
+
+- 创建文件
+  ![image-20221016101927154](Untiy.assets/image-20221016101927154.png)
+
+- 打开面板
+  ![image-20221016101946212](Untiy.assets/image-20221016101946212.png)
+
+- 添加轨道
+  ![image-20221016102029293](Untiy.assets/image-20221016102029293.png)
+
+- 将声音输出到轨道
+
+  > 创建空对象，挂载 **Audio Source**
+  >
+  > 将轨道拖拽到 **输出**
+
+  ![image-20221016102517243](Untiy.assets/image-20221016102517243.png)
+
+##### 脚本控制
+
+- 获取组件
+  - 引入：`using UnityEngine.Audio;`
+  - 创建变量：`public AudioMixer aMixer;`
+  - 拖拽混合音轨进行设置
+
+
+
+### 视频 Video Player
+
+##### 创建
+
+- 视频源
+  - 视频文件
+  - URL
+- 输出模式
+  - 渲染器纹理 Renderer Texture
+    - 创建输出目标纹理
+      ![image-20221016105837468](Untiy.assets/image-20221016105837468.png)
+    - 设置输出纹理
+      ![image-20221016105902162](Untiy.assets/image-20221016105902162.png)
+    - 在UI-RawImage中使用
+      ![image-20221016105938289](Untiy.assets/image-20221016105938289.png)
+
+##### 脚本控制
+
+- 引入：`using UnityEngine.Video;`
+- 获取组件：`VideoPlayer vPlayer = GetComponent<AudioSource>(); `
+- 播放控制
+  - 播放：`vPlayer.Play();`
+  - 暂停：`vPlayer.Pause();`
+  - 停止：`vPlayer.Stop();`
+
+##### 
 
 
 
