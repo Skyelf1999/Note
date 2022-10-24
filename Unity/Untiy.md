@@ -362,78 +362,6 @@ public class FirstSpell : MonoBehaviour
 
 
 
-### 通用方法
-
-##### 输出日志：`print(string text)`
-
-##### **获得组件
-
-```c#
-// 组件类 变量名称 = 游戏对象.GetComponent<组件类>()
-Rigidbody rb = other.gameObject.GetComponent<Rigidbody>();
-```
-
-##### 颜色Color
-
-##### **委托判存与发布
-
-```c#
-// 委托若存在，执行
-委托?.Invoke()
-```
-
-##### 锁定鼠标运动
-
-```c#
-// 将鼠标固定在屏幕中央并隐藏
-private void MouseLock(bool choice)
-{
-    if(choice)
-    {
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
-    }
-    else
-    {
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
-    }
-}
-```
-
-##### **鼠标点击移动
-
-> 
-
-```c#
-Ray mouseRay;
-RaycastHit hitInfo;		// 存储射线检测信息
-NavMeshAgent agent = GetComponent<NavMeshAgent>();
-
-private void MouseClickRayDetect(Ray ray)
-{
-    if (Physics.Raycast(ray, out hitInfo))
-    {
-        print("鼠标点击到了：" + hitInfo.point);
-    }
-}
-private void MouseClick()
-{
-    // 创建射线
-    if(Input.GetMouseButtonDown(1))
-    {
-        mouseRay = Camera.main.ScreenPointToRay(Input.mousePosition);
-        MouseClickRayDetect(mouseRay);
-    }
-    // 绘制
-    Debug.DrawRay(mouseRay.origin, mouseRay.direction*20, Color.cyan);
-    // 移动
-    agent.SetDestination(hitInfo.point)
-}
-```
-
-
-
 ### 游戏对象类
 
 ##### 常用属性
@@ -875,7 +803,6 @@ public void OnDrawGizmos()
 - 设定对象区域类型
   ![image-20221015144848277](Untiy.assets/image-20221015144848277.png)
 - 设置主体属性，烘焙
-  ![image-20221015145910797](Untiy.assets/image-20221015145910797.png
   ![image-20221015150715939](Untiy.assets/image-20221015150715939.png)
 
 ##### 动态地形
@@ -931,6 +858,8 @@ public void OnDrawGizmos()
       
   }
   ```
+
+- 停止导航：`agent.ResetPath();`
 
 - 常用属性
 
@@ -1475,11 +1404,13 @@ public class UIManager : MonoBehaviour
 
 ##### **动画器与状态机 Animator&StateMachine
 
-- 添加动画器 Animator
-  ![image-20221004105102073](Untiy.assets/image-20221004105102073.png)
+> 可以控制 **多个动画** 之间的切换
 
 - 创建动画器控制器 AnimatorController
   ![image-20221004105021874](Untiy.assets/image-20221004105021874.png)
+
+- 添加动画器 Animator，设置动画控制器
+  ![image-20221004105102073](Untiy.assets/image-20221004105102073.png)
 
 - 查看当前对象状态机
   ![image-20221004105125921](Untiy.assets/image-20221004105125921.png)
@@ -1596,6 +1527,10 @@ public class UIManager : MonoBehaviour
 - 声音控制
   - 音量：`float aSource.volume`
   - 音调：`float aSource.pitch`
+  
+- 音频设置：`aSource.clip = AudioClip aClip;`
+
+  > 切换播放的音频
 
 
 
