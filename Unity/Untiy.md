@@ -111,7 +111,8 @@
 
 - 挂载在游戏对象上
 - 一个脚本只能有1个类，**继承MonoBehaviour**，名称与脚本名一致
-- 类中定义的变量可在界面中看到
+- 类中定义的public变量可在界面中看到
+- 若想某变量应用于其他脚本类，需要定义为 `public static`
 
 
 
@@ -285,7 +286,7 @@ public class FirstSpell : MonoBehaviour
 
 - 引入：`using UnityEngine.Events`
 
-- 定义：`pulbic UnityEvent action;`
+- 定义：`pulbic UnityEvent<T> action;`
 
   > 注：若非使用界面直接进行绑定，请在此步骤创建对象
 
@@ -323,7 +324,7 @@ public class FirstSpell : MonoBehaviour
     
   - 脚本操作
 
-    > 
+    
 
 - 使用示例
 
@@ -366,9 +367,12 @@ public class FirstSpell : MonoBehaviour
 
 ##### 常用属性
 
-- 名称 name
-- 标签 tag
-- 变换组件 transform
+- 名称：`string name`
+- 标签：`string tag`
+- 变换组件：`Transform transform`
+  - 设置父对象：`SetParent(Transform transform)`
+
+- 是否激活：`SetActive(bool choice)`
 
 ------
 
@@ -513,9 +517,6 @@ public class FirstSpell : MonoBehaviour
   }
   ```
   
-  
-
-
 
 ------
 
@@ -1189,9 +1190,9 @@ public class UIEvents : MonoBehaviour
         Enter
     }
     
-    // Btn点击事件处理
+    // Btn点击事件处理存储数组
     public static UnityEvent<PointerEventData>[] btnPointEvent = new UnityEvent<PointerEventData>[System.Enum.GetValues(typeof(PointerEvent)).Length];
-    // Btn拖拽事件处理
+    // Btn拖拽事件处理存储数组
     public static UnityEvent<PointerEventData>[] btnDragEvent = new UnityEvent<PointerEventData>[System.Enum.GetValues(typeof(DragEvent)).Length];
 
     // 按钮事件报告（通用）
@@ -1219,13 +1220,13 @@ public class UIManager : MonoBehaviour
 {
     void Start()
     {
-        // 绑定Btn点击委托
+        // 为数组中的各个Btn点击处理绑定委托
         foreach(TempleEvents.PointerEvent v in System.Enum.GetValues(typeof(TempleEvents.PointerEvent)))
         {
-            // 在此处为所有事件的委托绑定通用方法
+            // 创建委托
             UnityEvent<PointerEventData> newEvent = new UnityEvent<PointerEventData>();
-            newEvent.AddListener(TempleEvents.ReportBtnPoint);
-            TempleEvents.btnPointEvent[(int)v] = newEvent;
+            newEvent.AddListener(TempleEvents.ReportBtnPoint);		// 在此处为所有事件的委托绑定通用方法
+            TempleEvents.btnPointEvent[(int)v] = newEvent;			// 存储在数组中
         }
         print("Btn点击委托绑定完成");
     }
@@ -1234,17 +1235,15 @@ public class UIManager : MonoBehaviour
 
 
 
-### Text
+### 常用UI组件
 
+##### Text
 
+##### Button
 
-### Button
+- 点击事件设定
 
-##### 属性
-
-##### 点击事件设定
-
-> 可以在界面中直接设定（类似）
+  > 可以在界面中直接设定点击事件
 
 - 创建UI控件管理脚本进行直接设定点击事件处理
 
@@ -1288,11 +1287,13 @@ public class UIManager : MonoBehaviour
   public class BtnTest : MonoBehaviour,
                                          IPointerClickHandler, IPointerEnterHandler
   {
+      // 点击
       public void OnPointerClick(PointerEventData eventData)
       {
           TempleEvents.btnPointEvent[(int)TempleEvents.PointerEvent.Click]?.Invoke(eventData);
       }
   
+      // 进入
       public void OnPointerEnter(PointerEventData eventData)
       {
           TempleEvents.ReportBtnPoint(eventData);
@@ -1300,6 +1301,10 @@ public class UIManager : MonoBehaviour
   
   }
   ```
+
+##### Slider
+
+
 
 
 ------
@@ -1495,7 +1500,12 @@ public class UIManager : MonoBehaviour
 
     - 集体设置:`line.SetPositions(Vector3[] positions);`
 
-      
+
+------
+
+
+
+
 
 
 
@@ -1589,7 +1599,216 @@ public class UIManager : MonoBehaviour
   - 暂停：`vPlayer.Pause();`
   - 停止：`vPlayer.Stop();`
 
-##### 
+------
+
+
+
+
+
+
+
+# 线程与协程
+
+### C#多线程
+
+##### 使用
+
+> 一般将核心逻辑放在主线程上
+
+##### 脚本控制
+
+- 引入：`using System.Threading.Tasks;`
+
+- 手动启动新线程
+
+  - `Task.Run(Func 方法)`
+
+  - `Task.Run(Action action)`
+
+    > 也可以传入匿名函数
+
+- 延迟等待：`await Task.Delay(int time);`
+
+  > 传入毫秒数
+
+- 多线程方法：`async 返回类型 方法名()`
+
+  > 使用 **async** 关键词，使该方法支持多线程
+  >
+  > **必须含有延迟等待**
+  >
+  > 使用貌似有bug，不建议
+
+
+
+### 协程
+
+> 运行在同一线程上
+
+##### 脚本控制
+
+- 定义协程方法：`IEnumerator 方法名(参数类型 参数)`
+
+- 启动协程：`StartCoroutine(方法名(参数));`
+
+- 返回延迟操作：`yield return`
+
+  > 执行到此处，会将指令挂起，直到yield return返回的操作结束
+
+  ```c#
+  yield returnyield return new WaitForSeconds(float seconds);
+  yield return new WaitForSecondsRealtime(float seconds);
+  yield return new WaitForEndOfFrame();		// 等待本次Update结束
+  yield return new WaitForFixedUpdate();		// 等待本次FixedUpdate结束
+  yield return null;							// 等待一帧
+  ```
+
+  
+
+# 场景
+
+### 场景设置
+
+> File --> Build Settings
+
+![image-20221029125305742](Untiy.assets/image-20221029125305742.png)
+
+
+
+### 脚本控制
+
+##### 场景切换
+
+- 引入：`using UnityEngine.SceneManagement;`
+
+- 加载场景：`SceneManager.LoadScene(int index 或 string name)`
+
+- 协程切换：`AsyncOperation operation = SceneManager.LoadSceneAsync(int index);`
+
+  > 返回一个AsyncOperation变量
+  >
+  > 可添加加载方式
+  >
+  > **使用有问题？？？**
+
+  ```c#
+  void Update()
+  {
+      if(Input.GetKeyDown(KeyCode.Return)) SceneChange(1);
+  }
+  
+  IEnumerator SceneChange(int index)
+  {
+      AsyncOperation operation = SceneManager.LoadSceneAsync(index);
+      yield return operation;
+  }
+  ```
+
+  - 加载进度：`float operation.progress`
+  - 是否加载完成：`bool operation.isDone`
+  - 完成后的回调：`Action<AsyncOperation> operation.completed`
+  - 加载后是否开启场景：`bool operation.allowSceneActivation`
+
+- 加载方式：`LoadSceneMode`
+
+  > 枚举类
+  
+  - 叠加：`Additive`
+
+
+
+### 细节分层 LoD
+
+##### 添加组件
+
+> 一般将不同精度的资源放在同一个空物体下
+>
+> 再为空物体挂载LoD组件
+
+![image-20221029131236483](Untiy.assets/image-20221029131236483.png)
+
+------
+
+
+
+
+
+
+
+# 预制体与对象池
+
+### 预制体 Prefab
+
+> 针对游戏中需要动态创建、销毁的对象
+>
+> 比较消耗性能
+
+##### 一般生成方式
+
+- 放置一个关闭的游戏对象作为本体
+
+- 复制对象：`GameObject newObject = Instantiate(GameObject originObject);`
+
+  > 复制体的默认名称为：本体名称(Clone)
+
+- 销毁对象：`Destroy(GameObject ob)`
+
+##### 预制体方式生成
+
+> 某些对象用到的时候才会生成，不必一开始就生成
+
+- 新建预制体Prefab
+
+  > 新建Resources
+  >
+  > 将对象直接拖拽到 `Assets/Resources` 中
+  >
+  > 之后可直接从Hierarchy中删除
+
+  ![image-20221030141728206](Untiy.assets/image-20221030141728206.png)
+
+- 加载预制体
+
+  - 直接加载：`GameObject prefabObject = Resources.Load<GameObject>(string name);`
+
+  - 异步加载
+
+    ```c#
+    IEnumerator LoadPrefabAsync(string name)
+    {
+        // 创建请求
+        ResourceRequest request = Resources.LoadAsync<GameObject>(name);
+        yield return request;
+    	// 获取加载结果
+        originBullet = (GameObject)request.asset;
+        // 创建复制体
+        newBullet = Instantiate(originBullet);
+        newBullet.SetActive(true);
+        newBullet.transform.SetParent(transform);
+    }
+    ```
+
+    
+
+
+
+### 对象池
+
+> 用一个Queue来管理复制体
+>
+> 当队列为空时，创建复制体并入队，否则出队作为复制体
+>
+> 用入队代替销毁
+>
+> 如此一来，**当队列非空时，不会创建新的复制体**
+
+
+
+
+
+------
+
+
 
 
 

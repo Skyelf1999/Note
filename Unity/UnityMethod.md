@@ -8,12 +8,19 @@
 
 ```c#
 // 只能调用无需参数的函数
-Invoke("AttackEnd", 1);
+Invoke("AttackEnd", f1.0);
 
 public void AttackEnd()
 {
     
 }
+```
+
+##### **委托判存与发布
+
+```c#
+// 委托若存在，执行
+委托?.Invoke()
 ```
 
 
@@ -28,17 +35,6 @@ Rigidbody rb = other.gameObject.GetComponent<Rigidbody>();
 ```
 
 ##### 颜色Color
-
-##### **委托判存与发布
-
-```c#
-// 委托若存在，执行
-委托?.Invoke()
-```
-
-
-
-
 
 
 
