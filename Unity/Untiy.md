@@ -1641,7 +1641,7 @@ public class UIManager : MonoBehaviour
 
 
 
-### 协程
+### 协程 IEnumerator
 
 > 运行在同一线程上
 
@@ -1656,14 +1656,42 @@ public class UIManager : MonoBehaviour
   > 执行到此处，会将指令挂起，直到yield return返回的操作结束
 
   ```c#
+  // 等待几秒
   yield returnyield return new WaitForSeconds(float seconds);
   yield return new WaitForSecondsRealtime(float seconds);
   yield return new WaitForEndOfFrame();		// 等待本次Update结束
   yield return new WaitForFixedUpdate();		// 等待本次FixedUpdate结束
   yield return null;							// 等待一帧
   ```
-
   
+
+```c#
+// 协程：监听Update中i的值
+IEnumerator ListenerI()
+{
+    while(true)
+    {
+        yield return new WaitForEndOfFrame();
+        if(i==56)
+        {
+            print("协程检测：i=" + i);
+            break;
+        }
+     }
+    yield return new WaitForSeconds(1);
+    while (true)
+    {
+        yield return new WaitForEndOfFrame();
+        if (i == 999)
+        {
+            print("协程检测：i=" + i);
+            break;
+        }
+    }
+}
+```
+
+
 
 # 场景
 
@@ -1745,7 +1773,7 @@ public class UIManager : MonoBehaviour
 
 ##### 一般生成方式
 
-- 放置一个关闭的游戏对象作为本体
+- 放置一个 **关闭的** 游戏对象作为 **本体**
 
 - 复制对象：`GameObject newObject = Instantiate(GameObject originObject);`
 
@@ -1769,10 +1797,12 @@ public class UIManager : MonoBehaviour
 
 - 加载预制体
 
+  > 加载后即可使用 **Instantiate** 进行复制
+
   - 直接加载：`GameObject prefabObject = Resources.Load<GameObject>(string name);`
 
   - 异步加载
-
+  
     ```c#
     IEnumerator LoadPrefabAsync(string name)
     {
@@ -1787,8 +1817,7 @@ public class UIManager : MonoBehaviour
         newBullet.transform.SetParent(transform);
     }
     ```
-
-    
+  
 
 
 
@@ -1796,19 +1825,261 @@ public class UIManager : MonoBehaviour
 
 > 用一个Queue来管理复制体
 >
-> 当队列为空时，创建复制体并入队，否则出队作为复制体
+> 当 **队列为空** 时，**创建复制体** 并入队；**队列非空**，则 **出队** 以获取复制体
 >
-> 用入队代替销毁
+> 用 **入队代替销毁**
 >
 > 如此一来，**当队列非空时，不会创建新的复制体**
-
-
-
-
 
 ------
 
 
+
+
+
+
+
+# 网络技术
+
+### 网络请求 Request
+
+##### 基础知识
+
+- 请求类型
+
+  - 获得：Get
+  - 传输：Post
+
+- 传输类型：Json
+
+  > 信息都以 **名称-内容** 的键值对呈现，并通过不同格式组织成不同类型
+
+##### 脚本控制
+
+> 一般通过协程完成网络请求
+
+- 引入：`using UnityEngine.Networking;`
+
+- 创建请求对象
+
+  - 静态创建：`UnityWebRequest request = UnityWebRequest.Get("unity.cn");`
+
+  - 动态创建
+
+    ```c#
+    // 创建请求（需创建接收）
+    UnityWebRequest request = new UnityWebRequest("unity.cn","GET");
+    request.downloadHandler = new DownloadHandlerBuffer();
+    ```
+
+  - 返回结果：`request.downloadHandler`
+
+    - 文字形式：`string request.downloadHandler.text`
+
+  - 请求结果码：`request.responseCode`
+
+    > 404等
+
+  - 错误信息：`request.error`
+
+- 发送请求：`yield return request.SendWebRequest();`
+
+
+
+### JSON
+
+> 只要 **public变量** 和 **标记为可序列化的类** 可参与转化
+
+##### 对象 --> Json文本
+
+```c#
+string json = JsonUtility.ToJson(对象, bool 是否自动换行);
+print(json);
+```
+
+##### Json文本 --> 对象
+
+> 需创建新对象进行保存
+
+##### 示例
+
+- 类
+
+  ```c#
+  public class Player
+  {
+      public string name;
+      public int age = 0;
+      public string id;
+      public Game favGame;
+      
+      public Player()
+      {
+  
+      }
+      public Player(string name, int age, string id, Game favGame)
+      {
+          this.name = name;
+          this.age = age;
+          this.id = id;
+          this.favGame = favGame;
+      }
+  }
+  
+  
+  [System.Serializable]
+  public class Game
+  {
+      public string name;
+      public string category;
+  
+      public Game(string name,string category)
+      {
+          this.name = name;
+          this.category = category;
+      }
+  }
+  ```
+
+- Json应用
+
+  ```c#
+  IEnumerator JsonTest()
+  {
+      yield return new WaitForSecondsRealtime(4);
+      print("Json测试");
+      json = JsonUtility.ToJson(player, true);
+      print(json+"\n\n\n\n");
+      /*
+      	{
+              "name": "dsh",
+              "age": 23,
+              "id": "起名难",
+              "favGame": {
+                  "name": "DotA",
+                  "category": "DotA-Like"
+              }
+          }
+      */
+      
+      Player newplayer = JsonUtility.FromJson<Player>(json);
+      newplayer.age += 20;
+      print(newplayer.age);	// 43
+      print(player.age);		// 23
+  }
+  ```
+
+  
+
+### 正则表达式 Regular Expression
+
+> 用于从复杂的字符串中精准提取目标内容
+
+##### 字符类型
+
+- 普通字符
+
+  > 需要精确匹配的字符，例如：“name”
+
+- 元字符
+
+  - “.”：非换行符
+  - “元字符*”：任意数量的目标类型字符
+
+##### 脚本控制
+
+- 引入：`using System.Text.RegularExpressions;`
+- 获得匹配结果
+  - 普通匹配结果：`string res = Regex.Match(string str, string "正则表达式").Value`
+
+------
+
+
+
+
+
+
+
+# IO与存档
+
+### 数据存储
+
+##### 简单数据存储 PlayerPrefs
+
+> 不同平台存储位置不同，Windows存储在注册表中
+
+- 创建键值对
+  - `PlayerPrefs.SetInt(string key, int value)`
+  - `PlayerPrefs.SetFloat(string key, float value)`
+  - `PlayerPrefs.SetString(string key, string value)`
+- 保存数据：`PlayerPrefs.Save()`
+- 判存：`PlayerPrefs.HasKey(string key)`
+- 获取数据：`PlayerPrefs.GetXXX(string key)`
+- 删除数据
+  - `PlayerPrefs.DeleteKey(string key)`
+  - `PlayerPrefs.DeleteAll()`
+
+##### 对象文本IO存储
+
+> 文本可以无后缀名，也可自定义后缀
+
+- 将对象转换为Json字符串：`string json = JsonUtility.ToJson(对象, bool 是否自动换行);`
+- 引入：`using System.IO;`
+- 创建路径：`string path = Application.persistentDataPath + "/路径/文件名.后缀";`
+- 存储到指定位置：`File.WriteAllText(string path)`
+- 读取：`string data = File.ReadAllText(string path)`
+- 删除：`File.Delete(string path)`
+
+
+
+### 数据保护
+
+##### 加密解密类
+
+```c#
+using System;
+using System.IO;
+using System.Text;
+using System.Security.Cryptography;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class Cryptor : MonoBehaviour
+{
+    static Aes aes = Aes.Create();
+
+    public static void SetKeyAndIV(string key, string iv)
+    {
+        aes.Key = Encoding.ASCII.GetBytes(key);
+        aes.IV = Encoding.ASCII.GetBytes(iv);
+    }
+
+    public static string Encrypt(string plainStr)
+    {
+        MemoryStream ms = new MemoryStream();
+        CryptoStream cs = new CryptoStream(ms, aes.CreateEncryptor(), CryptoStreamMode.Write);
+        StreamWriter writer = new StreamWriter(cs,Encoding.UTF8);
+        writer.Write(plainStr);                                                              // 写入原始明文
+        writer.Close();
+        return Convert.ToBase64String(ms.ToArray());                  // 获得加密后的内容
+    }
+
+    public static string Decrypt(string cipherStr)
+    {
+        MemoryStream ms = new MemoryStream(Convert.FromBase64String(cipherStr));
+        CryptoStream cs = new CryptoStream(ms, aes.CreateDecryptor(), CryptoStreamMode.Read);
+        StreamReader reader = new StreamReader(cs,Encoding.UTF8);
+        string plainStr = reader.ReadToEnd();
+        reader.Close();
+        return plainStr;
+    }
+}
+```
+
+##### 使用
+
+> 先设置密文Key和IV，再加密解密
 
 
 
