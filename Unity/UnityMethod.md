@@ -2,7 +2,13 @@
 
 ### 程序
 
-##### 输出：print
+##### 输出
+
+- 简单输出：`print(Object message)` 和 `Debug.Log(Object message)`
+
+- 格式化输出：`Debug.LogFormat`
+
+  > 与 `Console.WriteLine` 类似
 
 ##### 定时调用
 
@@ -128,4 +134,3 @@ private void MouseClick()
 
 
 
-### 

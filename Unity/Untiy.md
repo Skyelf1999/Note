@@ -94,8 +94,12 @@
 > 每次Update之后执行
 >
 > 由此可以固定实现不同物体Update的先后顺序
->
-> 例如：
+
+
+
+### 导出
+
+> File --> Build Settings
 
 ------
 
@@ -323,8 +327,6 @@ public class FirstSpell : MonoBehaviour
       > 若该委托类型有 **多个参数**，则 **只能进行动态绑定**
     
   - 脚本操作
-
-    
 
 - 使用示例
 
@@ -1046,7 +1048,7 @@ public void OnDrawGizmos()
 
 ### 基础
 
-在层级处直接创建，初次生成还会创建两个对象：
+> 在层级处直接创建，初次生成还会创建两个对象
 
 ##### Canvas：画布
 
@@ -1061,15 +1063,18 @@ public void OnDrawGizmos()
   > **UI组件独有**
 
   - Pos XYZ：矩形区中心点相对父物体锚点的坐标
-
   - Width、Height
-
-  - 
-
+  
 - 渲染模式Render Mode 
 
+  > 渲染到哪里？
+
   - 覆盖
+
+    > 同一个相机下，UI永远位于游戏对象前面
   - 相机
+
+    > 同一个相机下，UI可能被游戏对象遮挡
   - 世界空间
 
 - 画布缩放Canvas Scaler
@@ -1088,6 +1093,20 @@ public void OnDrawGizmos()
 
 - 引入： `using UnityEngine.UI;`
 - 创建变量：`控件类型 控件名称`
+
+##### **位置
+
+- 锚点 Anchors
+
+  > 组件相对画布中心的位置比例，(1, 1)为右上角
+
+- 轴心 Pivot
+
+  > 组件的中心，一般为 (0.5, 0.5)
+
+- 位置
+
+  > 组件 **轴心** 相对 锚点 的位置
 
 
 
@@ -1239,72 +1258,405 @@ public class UIManager : MonoBehaviour
 
 ##### Text
 
+- 获取组件
+
+  - 当前对象：`Text text = GetComponent<Text>();`
+
+  - 其他对象：`public Text TextTitle;`
+
+    > 之后直接从界面拖拽设置即可
+
+- 属性
+
+  - 文本内容：`string text.text`
+
+    > 支持格式字符（换行、缩进）
+
+  - 字号：`int text.fontSize`
+
+  - 行间距：`float text.lineSpacing`
+
+    > 应考虑组件本身的宽高，防止无法显示出来
+
+  - 风格：`text.fontStyle`
+
+    ```c#
+    public enum FontStyle
+    {
+        //
+        // 摘要:
+        //     No special style is applied.
+        Normal,
+        //
+        // 摘要:
+        //     Bold style applied to your texts.
+        Bold,
+        //
+        // 摘要:
+        //     Italic style applied to your texts.
+        Italic,
+        //
+        // 摘要:
+        //     Bold and Italic styles applied to your texts.
+        BoldAndItalic
+    }
+    ```
+    
+  - 对齐：`text.alignment`
+  
+    > 垂直：Upper、Middle、Lower
+    >
+    > 水平：Left、Center、Right
+  
+    ```c#
+    //
+    // 摘要:
+    //     Where the anchor of the text is placed.
+    public enum TextAnchor
+    {
+        //
+        // 摘要:
+        //     Text is anchored in upper left corner.
+        UpperLeft,
+        //
+        // 摘要:
+        //     Text is anchored in upper side, centered horizontally.
+        UpperCenter,
+        //
+        // 摘要:
+        //     Text is anchored in upper right corner.
+        UpperRight,
+        //
+        // 摘要:
+        //     Text is anchored in left side, centered vertically.
+        MiddleLeft,
+        //
+        // 摘要:
+        //     Text is centered both horizontally and vertically.
+        MiddleCenter,
+        //
+        // 摘要:
+        //     Text is anchored in right side, centered vertically.
+        MiddleRight,
+        //
+        // 摘要:
+        //     Text is anchored in lower left corner.
+        LowerLeft,
+        //
+        // 摘要:
+        //     Text is anchored in lower side, centered horizontally.
+        LowerCenter,
+        //
+        // 摘要:
+        //     Text is anchored in lower right corner.
+        LowerRight
+    }
+    ```
+  
+    - 溢出
+  
+      > 当内容过多时，如何显示
+      
+      - 水平：`text.horizontalOverflow`
+  
+          ```c#
+          public enum HorizontalWrapMode
+          {
+              Wrap,		// 自动换行
+              Overflow	// 溢出
+          }
+          ```
+      
+      - 垂直：`text.verticalOverflow`
+      
+          ```c#
+          public enum VerticalWrapMode
+          {
+              Truncate,	// 隐藏溢出部分
+              Overflow	// 溢出
+          }
+          ```
+      
+    - 是否自动调节字体大小以防止溢出：`bool text.resizeTextForBestFit`
+  
+    - 是否支持富文本：`bool text.supportRichText`
+  
+      > 支持后，可通过html语言设置文本格式
+      >
+      > 例如：`TextTitle.text = "UGUI测试\n\t\t\t<b>dsh</b>";`
+  
+      - 加粗：`<b></b>`
+      - 斜体：`<i></i>`
+      - 大小：`<size=30></size>`
+      - 颜色：`<color=#十六进制RGB></color>`
+  
+
+##### Image
+
+- 图片预处理
+
+  > 导入图片后，需要先进行处理，将 **纹理类型** 转换成Sprite格式
+  >
+  > 点击 **Sprite Edior** ，还可以对图片进行九宫格处理
+
+  ![image-20221116145245425](Untiy.assets/image-20221116145245425.png)
+
+- 获取组件：`Image image = GetComponent<Image>(); `
+
+- 属性
+
+  - 图像源：`Sprite image.sprite`
+
+  - 图像类型：`Image.Type image.type`
+
+    ```c#
+    public enum Type
+    {
+        Simple,
+    	Sliced,		// 需要图像先做九宫格分割，拉伸时4个角形状不变
+        Tiled,		// 平铺，用原图像重复填充整个Image控件区域
+        Filled		// 填充
+    }
+    ```
+
+    - **填充类型属性设定**
+
+      > 通过创建灰色半透明的Filled类型Image，并控制填充量
+      >
+      > 可实现技能冷却的效果
+
+      ```c#
+      public class ImgController : MonoBehaviour
+      {
+          Image image;
+          public Sprite sourceImg;
+          float cdTime = 5f;		// cd
+          float curTime;			// 当前cd倒计时
+      
+          void Start()
+          {
+              image = GetComponent<Image>();
+      		// 填充属性
+              image.fillMethod = Image.FillMethod.Radial360;
+              image.fillOrigin = 2;			// 0底部，1右，2顶，3左
+              image.fillClockwise = false;	// 是否是顺时针
+              curTime = cdTime;
+          }
+      
+          // Update is called once per frame
+          void Update()
+          {
+              if(curTime>0) curTime -= Time.deltaTime;
+              else curTime = cdTime;
+              // 设定当前的填充量
+              image.fillAmount = curTime/cdTime;
+          }
+      }
+      ```
+
+##### RawImage
+
+- 获取组件：`RawImage rImg = GetComponent<RawImage>();`
+
+- 属性
+
+  - 图像源文件：`Texture rImg.texture`
+
+    > 不再要求一定是 Sprite，**任何texture都可以**
+    >
+    > 以此特性，可实现小屏幕效果
+
+  - **UV Rect**：`Rect rImg.uvRect`
+
+    > 源文件的显示窗口，相当于从此窗口显示 **源文件平铺的效果**
+    >
+    > x、y为窗口相对图片中心的比例位置，中心为(0, 0)
+    >
+    > W、H为窗口的宽高相对图片宽高的倍数，增大之后会压缩图片来实现 **窗口的相对增大**
+    >
+    > 对于一张动画帧组合图，可通过实时更新x、y的值来实现动画的播放
+    >
+    > 由于x、y、w、h都是 **比例数值** ，因此不会受到图片大小本身的影响
+
+    ![image-20221116161337643](Untiy.assets/image-20221116161337643.png)
+
+    ```c#
+    using System.Collections;
+    using System.Collections.Generic;
+    using UnityEngine;
+    using UnityEngine.UI;
+    
+    public class RImgController : MonoBehaviour
+    {
+        RawImage rImg;
+        public Texture img;
+        Rect cur;
+    
+    
+        void Start()
+        {
+            rImg = GetComponent<RawImage>();
+            //rImg.texture = img;
+        }
+    
+        // Update is called once per frame
+        void Update()
+        {
+            cur = rImg.uvRect;		// 上一次的矩形
+            // 不断向右移动显示窗（图片向左移动）
+            rImg.uvRect  = new Rect(cur.x+Time.deltaTime,cur.y,cur.width,cur.height);
+        }
+    }
+    ```
+
+- 特殊操作：显示另一个视角
+
+  > 将相机视角渲染成texture，再用RawImage显示
+  
+  - 创建新相机
+  - 创建 Render Texture
+    ![image-20221116163053666](Untiy.assets/image-20221116163053666.png)
+  - 将新相机视角的目标纹理设定为刚刚创建的texture
+    ![image-20221116163137482](Untiy.assets/image-20221116163137482.png)
+  - 通过RawImage显示新相机输出的texture
+    ![image-20221116163146605](Untiy.assets/image-20221116163146605.png)
+
 ##### Button
 
 - 点击事件设定
 
-  > 可以在界面中直接设定点击事件
+  - 直接设定
 
-- 创建UI控件管理脚本进行直接设定点击事件处理
+    > 可以在界面中直接设定点击事件
+    >
+    > 但此方法 **只能设置无参数的UnityEvent**
 
-  > 相当于在控件的界面中直接选择Function进行设定
-  >
-  > ![image-20221003153053503](Untiy.assets/image-20221003153053503.png)
+    ![image-20221003153053503](Untiy.assets/image-20221003153053503.png)
 
-  ```c#
-  using System.Collections;
-  using System.Collections.Generic;
-  using UnityEngine;
-  using UnityEngine.Events;
-  using UnityEngine.EventSystems;
-  using UnityEngine.UI;
-  
-  
-  // 管理各种UI事件
-  public class UIManager : MonoBehaviour
-  {
-      public Button btnTest;		// 需要在界面中设定对应的游戏对象
-  
-      void Start()
-      {
-          btnTest.OnClick.AddListener(()=>print("点击"));
-      }
-  }
-  ```
+    ```c#
+    using System.Collections;
+    using System.Collections.Generic;
+    using UnityEngine;
+    using UnityEngine.Events;
+    using UnityEngine.EventSystems;
+    using UnityEngine.UI;
+    
+    
+    // 管理各种UI事件
+    public class UIManager : MonoBehaviour
+    {
+        public Button btnTest;		// 需要在界面中设定对应的游戏对象
+    
+        void Start()
+        {
+            btnTest.OnClick.AddListener(()=>print("点击"));
+        }
+    }
+    ```
 
-- 在单独持有的脚本中对各个事件进行设定
+  - 在**单独持有的脚本**中对各个事件进行设定
 
-  > 注意：进入事件通常会被Btn上的Text控件触发
-  >
-  > Click必定会触发Enter？？？
+    > 注意：进入事件通常会被Btn上的Text控件触发
+    >
+    > Click必定会触发Enter？？？
 
-  ```c#
-  using System.Collections;
-  using System.Collections.Generic;
-  using UnityEngine;
-  using UnityEngine.EventSystems;
-  
-  public class BtnTest : MonoBehaviour,
-                                         IPointerClickHandler, IPointerEnterHandler
-  {
-      // 点击
-      public void OnPointerClick(PointerEventData eventData)
-      {
-          TempleEvents.btnPointEvent[(int)TempleEvents.PointerEvent.Click]?.Invoke(eventData);
-      }
-  
-      // 进入
-      public void OnPointerEnter(PointerEventData eventData)
-      {
-          TempleEvents.ReportBtnPoint(eventData);
-      }
-  
-  }
-  ```
+    ```c#
+    using System.Collections;
+    using System.Collections.Generic;
+    using UnityEngine;
+    using UnityEngine.EventSystems;
+    
+    public class BtnTest : MonoBehaviour,
+                                           IPointerClickHandler, IPointerEnterHandler
+    {
+        // 点击
+        public void OnPointerClick(PointerEventData eventData)
+        {
+           print(eventData.pointerClick);		// 输出点击的Btn
+           TempleEvents.btnPointEvent[(int)TempleEvents.PointerEvent.Click]?.Invoke(eventData);
+        }
+    
+        // 进入
+        public void OnPointerEnter(PointerEventData eventData)
+        {
+            TempleEvents.ReportBtnPoint(eventData);
+        }
+    
+    }
+    ```
+
+- 方向键遍历
+
+  > 设置后，可使用方向键自由选中Button
+
+  ![image-20221117112327934](Untiy.assets/image-20221117112327934.png)
+
+##### Toggle
+
+> 可实现 **单选/复选**
+
+- 获取组件：`Toggle tg = GetComponent<Toggle>();`
+
+- 是否被选中：`bool tg.isOn`
+
+- 设定监听事件
+
+  > 当isOn状态改变后，调用监听方法
+
+  - 直接绑定：`tg.onValueChanged.AddListener(UnityEvent<bool> uEvent);`
+
+  - 界面绑定
+
+    > 此方式似乎可绑定无参事件
+
+    ![image-20221117115635787](Untiy.assets/image-20221117115635787.png)
+
+- **ToggleGroup**
+
+  - 创建父对象，挂载 **ToggleGroup** 组件
+    ![image-20221117120006630](Untiy.assets/image-20221117120006630.png)
+  - 在子Toggle上设置 **ToggleGroup**
+    ![image-20221117120032269](Untiy.assets/image-20221117120032269.png)
+  - 获取组件：` ToggleGroup toggleGroup = GetComponent<ToggleGroup>();`
+  - 是否允关闭（默认状态下全都不选中）：`bool toggleGroup.allowSwitchOff`
 
 ##### Slider
 
+- 构成
 
+  > 滑动杆、滑动把手本质都是 **Image**
+  > ![image-20221117153702387](Untiy.assets/image-20221117153702387.png)
+
+  - Background：滑动条未滑动的地方，
+  - Fill Area：滑动条填充的地方
+
+- 获取控件：`Slider slider = GetComponent<Slider>();`
+
+- 取值
+
+  - 最小值：`float slider.minValue`
+  - 最大值：`float slider.maxValue`
+  - 当前值：`float slider.value`
+  - 当前归一化值：`float slider.normalizedValue`
+
+- 方向：`Slider.Direction slider.direction`
+- 监听事件
+  - 直接绑定：`slider.onValueChanged.AddListener(UnityEvent<float> uEvent);`
+  - 界面绑定
+    ![image-20221117164052477](Untiy.assets/image-20221117164052477.png)
+
+##### Scrollbar
+
+##### ScrollView
+
+
+
+
+### 其他效果组件
+
+##### 描边 OutLine
+
+##### 阴影 Shadow
 
 
 ------
