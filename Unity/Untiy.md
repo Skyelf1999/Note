@@ -373,7 +373,9 @@ public class FirstSpell : MonoBehaviour
 - 标签：`string tag`
 - 变换组件：`Transform transform`
   - 设置父对象：`SetParent(Transform transform)`
-
+  - 获取子对象组件：`组件[] transform.GetComponentsInChildren<组件>();`
+  - 获取子对象：`GameObject child = transform.GetChild(int index)`
+  
 - 是否激活：`SetActive(bool choice)`
 
 ------
@@ -1062,7 +1064,7 @@ public void OnDrawGizmos()
   >
   > **UI组件独有**
 
-  - Pos XYZ：矩形区中心点相对父物体锚点的坐标
+  - Pos XYZ：矩形区域轴心相对其锚点的位置
   - Width、Height
   
 - 渲染模式Render Mode 
@@ -1098,15 +1100,15 @@ public void OnDrawGizmos()
 
 - 锚点 Anchors
 
-  > 组件相对画布中心的位置比例，(1, 1)为右上角
+  > 相对画布中心的位置比例，(1, 1)为右上角
 
 - 轴心 Pivot
 
   > 组件的中心，一般为 (0.5, 0.5)
 
-- 位置
+- **位置**
 
-  > 组件 **轴心** 相对 锚点 的位置
+  > 组件 **轴心** 相对 **锚点** 的位置
 
 
 
@@ -1647,7 +1649,224 @@ public class UIManager : MonoBehaviour
 
 ##### Scrollbar
 
+- 组成
+  ![image-20221128094929072](Untiy.assets/image-20221128094929072.png)
+
+  - Scrollbar
+  - Sliding Area：滑块区域
+  - Handle：滑块
+
+- 颜色
+  ![image-20221128095626795](Untiy.assets/image-20221128095626795.png)
+
+- 获取组件：`Scrollbar sbar = GetComponent<Scrollbar>(); `
+
+- 滑块：`RectTransform sbar.handleRect`
+
+- 取值
+
+  - 值：`float sbar.value`
+
+  - 大小：`float sbar.size`
+
+    > 滑块占整个滑动区域的百分比
+
+  - 步骤数量：`int sbar.numberOfSteps`
+
+    > 完成滑动过程的步骤数
+    >
+    > 默认为0，即平滑滑动；1无效
+    >
+    > 通常设定 steps*size=1
+
+- 监听：`sbar.onValueChanged.AddListener(UnityAction<float> act);`
+
+  ```c#
+  using System.Collections;
+  using System.Collections.Generic;
+  using UnityEngine;
+  using UnityEngine.UI;
+  using UnityEngine.Events;
+  
+  public class ScrollController : MonoBehaviour
+  {
+      public Scrollbar sbar;
+      UnityAction<float> SbarCb;
+  
+      void Start()
+      {
+          // 绑定委托
+          SbarCb += Cb_1;
+          SbarCb += Cb_2;
+          // 添加监听
+          sbar.onValueChanged.AddListener((float v)=>print(v));
+          sbar.onValueChanged.AddListener(SbarCb);
+          
+      }
+  
+      void Cb_1(float v)
+      {
+          if ((int)(v * 100) == 50) print("一半了");
+      }
+      void Cb_2(float v)
+      {
+          if ((int)(v * 100) == 100) print("结束了时");
+      }
+  }
+  
+  ```
+
+  ![image-20221128101212125](Untiy.assets/image-20221128101212125.png)
+
 ##### ScrollView
+
+- 结构
+  ![image-20221128101637606](Untiy.assets/image-20221128101637606.png)
+
+  - Viewport：遮罩组件
+
+    - Content
+
+      > 显示内容的父对象
+      >
+      > 其真实大小比Viewport大，但只显示Viewport的部分
+
+  - 水平/垂直滑块
+
+- 内容排布组件：**GridLayoutGroup**
+
+  > 常用于管理遮罩下的内容
+
+  - 获取组件：`GridLayoutGroup gridLG = GetComponent<GridLayoutGroup>();`
+  - 单元格大小：`Vector2 gridLG.cellSize`
+  - 间距：`int gridLG.padding.left`
+  - 起始角落：`GridLayoutGroup.Corner gridLG.startCorner`
+    ![image-20221128103921595](Untiy.assets/image-20221128103921595.png)
+  - 启动轴：`GridLayoutGroup.Axis gridLG.startAxis`
+    - Horizon
+    - Vertical
+  - 约束：`GridLayoutGroup.Constraint gridLG.constraint`
+    ![image-20221128104034096](Untiy.assets/image-20221128104034096.png)
+  - 约束量：`int gridLG.constraintCount`
+
+##### Dropdown
+
+- 结构
+  ![image-20221128104747084](Untiy.assets/image-20221128104747084.png)
+
+  - Label：显示当前选中的选项
+
+  - Arrow：展开箭头
+
+  - Template：展开区域的模板，默认disable
+
+    > 展开后，根据Template **动态创建** 一个名为 DropdownList 的对象来 **展示选项**
+
+- 获取组件：`Dropdown dropDown = GetComponent<Dropdown>();`
+
+- 相关对象
+
+  - 模板：`RectTransform dropDown.template`
+
+  - 标题
+
+    - 标题文本：`Text dropDown.captionText`
+    - 标题图像：`Image dropDown.captionImage`
+
+  - 项模板
+
+    > Template下的Item，单个选项
+
+    - 项文本：`Text dropDown.itemText`
+    - 项图像：`Image dropDown.itemImage`
+
+- **选项**
+
+  - 选项数据：`Dropdown.OptionData optionTest`
+    ![image-20221128105528847](Untiy.assets/image-20221128105528847.png)
+  - 选项组：`List<Dropdown.OptionData> dropDown.options`
+
+- 监听：`dropDown.onValueChanged.AddListener(UnityAction<int> act);`
+
+  > 传入选中选项在 **options** 中的 **序号**
+
+  ```c#
+  using System.Collections;
+  using System.Collections.Generic;
+  using UnityEngine;
+  using UnityEngine.UI;
+  
+  
+  public class DropdownController : MonoBehaviour
+  {
+      Dropdown dropDown;
+      Text textTitle;
+      Dropdown.OptionData optionTest;
+      
+      void Start()
+      {
+          dropDown = GetComponent<Dropdown>();
+          dropDown.options.Add(new Dropdown.OptionData("新建选项"));
+          dropDown.onValueChanged.AddListener();
+      }
+  
+      // Update is called once per frame
+      void Update()
+      {
+          
+      }
+  
+      public void Report(int index)
+      {
+          Debug.LogFormat("当前选项：{0} {1}",index, dropDown.options[index].text);
+      }
+  
+      public void AddOption(string newOption)
+      {
+          dropDown.options.Add(new Dropdown.OptionData(newOption));
+      }
+  }
+  ```
+
+  ![image-20221128105854000](Untiy.assets/image-20221128105854000.png)
+
+##### Inputfield
+
+- 结构
+  ![image-20221128110508598](Untiy.assets/image-20221128110508598.png)
+
+  - Placeholder：当无输入时，显示占位
+  - Text：显示当前输入的内容
+
+- 获取组件：`InputField input = GetComponent<InputField>();`
+
+- 子对象
+
+  - 占位组件：`Text placeHoder = input.placeholder.gameObject.GetComponent<Text>();`
+  - 显示组件：`Text textShow = input.textComponent;`
+
+- 光标
+
+  - 闪烁频率：`float input.caretBlinkRate`
+  - 宽度：`int input.caretWidth`
+  - 是否自定义颜色：`bool input.customCaretColor`
+  - 颜色：`Color input.caretColor`
+
+- 监听
+
+  - 值改变：`input.onValueChanged.AddListener(UnityAction<string> act);`
+
+  - 结束输入：`input.onEndEdit.AddListener(UnityAction<string> act);`
+
+    > **按ESC** 或 **取消选中输入框** 时触发
+    >
+    > 按ESC会取消当前输入的内容
+
+  - 提交：`input.onSubmit.AddListener(UnityAction<string> act);`
+
+    > 按 **Enter** 提交
+    >
+    > 同时会 **触发输入结束**
 
 
 

@@ -40,7 +40,15 @@ public void AttackEnd()
 Rigidbody rb = other.gameObject.GetComponent<Rigidbody>();
 ```
 
+##### 获取对象
+
+- 本体：`GameObject 任意组件.gameObject`
+- 子对象
+  - 
+
 ##### 颜色Color
+
+- 创建：`Color color = new Color(float r, float g, float b, float a);`
 
 
 
