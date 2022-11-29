@@ -1,18 +1,107 @@
-# 编译、执行、错误
+# 数据类型
 
-### 编译
+### 字符串
 
-##### 1. 将字符串编译后以函数返回：`func = loadstring(s) `
 
-```lua
-local tblStr = "{id = 1, num = 666}"
 
--- 编译并执行上述table定义，返回结构存储在tbl中
-local tbl = assert(loadstring("return " .. tblStr))()
-for k, v in pairs(tbl) do
-    print(k, v)    
-end
-```
+### table
+
+##### 定义
+
+- 空table：`tb = {}`
+- 初始化：`tb = {"项", 10, "x"=20, 999, "name"="dsh"}`
+
+##### 访问
+
+- 访问单项
+
+  > 同样可用此方式增加新内容，table会自动增长
+
+  - `tb[index]`
+
+  - `tb["key"]` 或 `tb.key`
+
+    ```lua
+    
+    ```
+
+- 遍历
+
+##### 操作
+
+- 求长度：`len = #tb`
+
+- 插入：`table.insert(t,index,value)`
+
+  > 默认插入队尾
+
+- 删除：`table.remove(t,index)`
+  默认从队尾删除
+
+- **排序：`table.sort(t, f)`
+
+  只能对数组排序
+
+  若想对索引table排序，可以先将索引保存在数组中**将索引排序**
+
+  ```lua
+  --索引排序迭代器
+  --索引排序迭代器
+  function paris_key(t,compare_func)
+      local a = {}
+      for n in pairs(t) do a[#a+1]=n end
+      table.sort(a,f)
+      local i = 0         -- 将保存入closure
+      return function()   -- 迭代器函数
+          i = i+1
+          return a[i],t[a[i]]
+      end
+  end
+  ```
+
+- 字符串数组连接：`table.concat(t)`
+
+  - 普通连接
+
+    ```lua
+    str_table = {"I'm","a","student"}
+    str = table.concat(str_table," ")
+    print("数组中的字符串连接后："..str)	--> I'm a student
+    ```
+
+
+  - 可处理嵌套字符串数组的连接
+
+    ```lua
+    function rconcat(l) 
+    	if type
+    end
+    ```
+
+
+
+
+### 函数
+
+
+
+### 编译、执行、错误
+
+##### 编译
+
+- 将字符串编译后以函数返回：`func = loadstring(s) `
+
+  ```lua
+  local tblStr = "{id = 1, num = 666}"
+  
+  -- 编译并执行上述table定义，返回结构存储在tbl中
+  local tbl = assert(loadstring("return " .. tblStr))()
+  for k, v in pairs(tbl) do
+      print(k, v)    
+  end
+  ```
+
+ 
 
 
 
@@ -362,8 +451,8 @@ end
 >
 > 新创建的w中没有width字段，于是调用元表中的 __index
 >
-> - 当__index对应一个方法时，传入table和字段
-> - 当__idnex对一个table时，在此table中寻找字段对应的值
+> - 当__index对应一个**方法**时，**传入table和字段**：`tb.__index(tb,xxx)`
+> - 当__idnex对一个**table**时，**在此table中寻找**字段对应的值：`tb.__index.xxx`
 >
 > 在此例中，程序将在 Window.prototype 中寻找此字段
 >
@@ -378,7 +467,7 @@ Window = {}
 Window.prototype = {x=0, y=0, width=100, height=100}
 Window.mt = {}
 
---构造函数（传入一个table）
+--构造函数（传入一个table以设定基础属性）
 function Window.new(o)
     setmetatable(o,Window.mt)
     return o
@@ -394,6 +483,12 @@ end
 -- 创建新的窗口
 w = Window.new{x=10,y=20}
 print(w.width)
+--[[
+	w本身并不包含width字段
+	因此，调用w的元表中的__index，即Window.mt.__index
+	这是个方法，于是传入参数进行调用：Window.mt.__index(w,width)
+	返回：Window.prototyoe[width]，即默认的 width=10
+]]--
 ```
 
 ##### 2. 更新方法：`__newindex`
@@ -816,7 +911,8 @@ function Account.withdraw(v)
 	Account.balance = Account.balance - v    
 end
 
-a = Account; Account = nil
+a = Account; 
+Account = nil;		-- 回收Account以节省资源
 a.withdraw(100)		-- 错误，因为方法与Account有关，而Account已被回收
 ```
 
@@ -837,7 +933,7 @@ a.withdraw(a,100)		-- 正确
 
 > 定义方法时，用 **:** 相当于隐藏了传入的self
 >
-> 当实例调用方法时，传入的就是实例了
+> 当对象调用方法时，**传入的就是对象本身** 了
 >
 > 得益于调用对象会以self传入，当调用与对象未重定义的基类属性后，**会给对象添加相应字段**，之后访问该字段就**不用去 元表.__index 里寻找了**
 
@@ -848,7 +944,8 @@ function Account.withdraw(self,v)
 	self.balance = self.balance - v    
 end
 
-a = Account; Account = nil
+a = Account; 
+Account = nil;
 -- a.withdraw(a,100)		
 a:withdraw(100)		-- 正确
 ```
@@ -876,7 +973,7 @@ a:withdraw(100)		-- 正确
 Account = {balance=0}		-- 默认属性
 function Account:new(o)     -- 构造方法
     o = o or {}
-    setmetatable(o,self)    -- 将Account作为新对象的元表，将基本属性附加给新对象
+    setmetatable(o,self)    -- 将基类Account作为新对象的元表，将基本属性附加给新对象
     self.__index = self     -- Account.__index = Account
     return o
 end
@@ -1140,53 +1237,6 @@ end
 
 
 ### **table库
-
-##### 1. 插入：`table.insert(t,index,value)`
-
-> 默认插入队尾
-
-##### 2. 删除：`table.remove(t,index)`
-
-> 默认从队尾删除
-
-##### 3. **排序：`table.sort(t, f)`
-
-> 只能对数组排序
->
-> 若想对索引table排序，可以先将索引保存在数组中**将索引排序**
-
-```lua
---索引排序迭代器
---索引排序迭代器
-function paris_key(t,compare_func)
-    local a = {}
-    for n in pairs(t) do a[#a+1]=n end
-    table.sort(a,f)
-    local i = 0         -- 将保存入closure
-    return function()   -- 迭代器函数
-        i = i+1
-        return a[i],t[a[i]]
-    end
-end
-```
-
-##### 4. 字符串数组连接：`table.concat(t)`
-
-- 普通连接
-
-  ```lua
-  str_table = {"I'm","a","student"}
-  str = table.concat(str_table," ")
-  print("数组中的字符串连接后："..str)	--> I'm a student
-  ```
-
-- 可处理嵌套字符串数组的连接
-
-  ```lua
-  function rconcat(l) 
-  	if type
-  end
-  ```
 
 
 
