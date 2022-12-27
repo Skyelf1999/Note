@@ -2,6 +2,210 @@
 
 ### 字符串
 
+##### 模式
+
+- 字符分类
+
+  > 大写形式表示补集
+
+  | 字符 | 含义              | 补充                               |
+  | ---- | ----------------- | ---------------------------------- |
+  | %a   | 字母              | %a+表示所有单词                    |
+  | %c   | 控制字符          |                                    |
+  | %d   | 整数              | %0xd表示至少有x位的数，不足用0补齐 |
+  | %f   | 浮点数            | %.xf表示小数点后保留x位            |
+  | %l   | 小写字母          |                                    |
+  | %p   | 标点              |                                    |
+  | %s   | 字符              |                                    |
+  | %u   | 大写字母          |                                    |
+  | %w   | 字母和数字字符    |                                    |
+  | %x   | 十六进制数字      |                                    |
+  | %z   | 内部表示为0的字符 |                                    |
+
+- 魔法字符
+
+  - %：转义字符
+
+  - []：自定义字符集
+
+    > 加入^即可得到补集
+    >
+    > 用 - 连接字符范围的首位
+
+    - 同时匹配数字、字母、下划线：`[%w_]`
+    - 二进制：`[01]`
+    - 元音字母：`[AEIOUaeiou]`
+    - 8进制：`[0-7]`
+
+- 修饰符
+
+  - +：重复>=1次
+
+    - 一个或多个字符：`%a+`
+
+      > 单词
+
+    - 一个或多个数字：`%d+`
+
+      > 整数
+
+  - *：重复>=0次
+
+  - -：重复>=0次
+
+    > 会匹配最短子串
+
+    - 匹配字符串中的注释
+
+      > 若不用-，会使得第一个注释符号与最后一个注释符号匹配
+
+      ```lua
+      string.gsub(text,"/%*.-%*/","注释")
+      ```
+
+  - ?：可选部分（0次或1次）
+
+    - 寻找可带符号的整数：`[+-]?%d+`
+
+- %b：匹配成对字符
+
+  - 匹配()及其中的字符：`"%b()"`
+
+##### 库操作
+
+- 匹配模式
+
+  - 寻找匹配模式的内容的位置：`string.find(str,mod)`
+
+    > 还可以传入第3个参数，指定**开始搜索的位置**
+
+    - 根据内容寻找
+
+      > ```lua
+      > local str_1 = "What's your name?"
+      > local i,j = string.find(str_1,"name")
+      > print("“name”的位置："..i..", "..j)
+      > ```
+
+    - 寻找匹配模式的内容：
+
+
+  - **寻找匹配模式的内容：`string.match(str,mod)`
+
+    > 返回字符串中与模式匹配的**部分字符串**
+    >
+    > 一般用**变量格式**进行匹配才有意义
+
+    ```lua
+    local str_2 = "Today is 2022/5/15"
+    local date = string.match(str_2,"%d+/%d+/%d+")
+    print("字符串中的日期：" .. date)		--> 2022/5/15
+    ```
+
+
+  - 对字符串中匹配格式的所有部分进行替换：`string.gsub(str,mode,replace_str)`
+
+    > 可加入第4个参数，限制替换的次数
+    >
+    > 替换内容不能为变量格式
+    >
+    > 因此一般用于**内容替换**
+
+    ```lua
+    local str_3 = str_2 .. ", tomorrow is 2022/5/16"
+    local new_str3 = string.gsub(str_3,"2022","二零二二")
+    print("替换后的str_3：" .. new_str3)
+    
+    -- 也可用于统计内容出现次数
+    count = select(2,string.gsub(str,"内容","替换方式"))
+    ```
+
+
+  - 匹配模式内容迭代器：`string.gmatch(str,pattern)`
+
+    > %a+表示单词
+
+    ```lua
+    local str_4 = "苹果的英文是apple，刀塔原名DotA，SC是星际争霸的简称"
+    for w in string.gmatch(str_4,"%a+") do
+        print(w)	--> apple,DotA,SC
+    end
+    
+    
+    -- 模拟require寻找模块的策略
+    function search(modname,path)
+        -- 将 . 替换成 /
+        modname = string.gsub(modname,"%.","/")
+        for c in string.gmatch(path,"[^;]+") do
+            -- 用模块名替换路径用分号分开的各部分中的?
+            local fname = string.gsub(c,"?",modname)
+            local f = io.open(fname)
+            if f then
+                f:close()
+                return fname
+            end
+        end
+        return nil      -- 未找到
+    end
+    ```
+
+
+- 格式化输出：`string.format(mod,str)`
+
+  ```lua
+  print(string.format("format实例：\n\tpi = %.2f",math.pi))
+  -- pi = 3.14
+  ```
+
+- 捕获：
+
+  - 使用()将match匹配到的内容分割
+
+    - 匹配相应格式后的字符
+
+      ```lua
+      local str_5 = "name = dsh, 出生日期：1999/08/14"
+      -- 匹配字段和等号后的内容
+      local name = string.match(str_5,"%a+%s*=%s*(%a+)")
+      local year,month,day = string.match(str_5,"(%d+)/(%d+)/(%d+)")
+      ```
+
+    - 匹配引号中的内容：`"([\"'])(.-)%l"`
+
+      > 先捕获引号本身
+      >
+      > 再捕获引号中的内容
+
+    - 匹配长字符串：`"%[(=*)%[(.-)%]%l%]"`
+
+      > 匹配：[，0个或多个=，另一个[，任意内容，]，相同数量的=，]
+
+
+  - **使用gsub对匹配内容进行格式化替换
+
+    - 替换日期格式
+
+      ```lua
+      local new_str5 = 
+      	string.gsub("出生日期：1999/08/14","(%d+)/(%d+)/(%d+)","%1-%2-%3")
+      print(new_str5)		-- 1999-08-14
+      ```
+
+    - **交换相邻字符
+
+      ```lua
+      string.gsub(text,"(.)(.)","%2%1")
+      ```
+
+    - 剔除字符串两端的空格
+
+      > ^和$表示操作整个字符串
+
+      ```
+      string.gsub(text,"^%s*(.-)%s*$","%l")
+      ```
+
+
 
 
 ### table
@@ -27,12 +231,31 @@
 
   - 序号项遍历：`for i,v in ipairs(tb) do ... end`
 
+    > 无法遍历非数字序号字段
+
   - 混合遍历：`for k,v in pairs(tb) do ... end`
-
+  
     > **优先按顺序遍历序号项**，再遍历字段项
+    >
+    > 字段项无序
+    
+    ```lua
+    t_hash = {[2]=199, ["我"]="狄仕豪",["你"]="什么",[0]="哈哈哈",game = "dota"}
+    for i,v in pairs(t_hash) do
+        print(i,v)
+    end
+    --[[
+    	0	哈哈哈
+        2	199
+        我	狄仕豪
+        game	dota
+        你	什么
+        dota
+    ]]--
+    ```
 
 
-##### 操作
+##### 库操作
 
 - 求长度：`len = #tb`
 
@@ -40,9 +263,33 @@
 
   > 默认插入队尾
 
-- 删除：`table.remove(t,index)`
-  默认从队尾删除
+  ```lua
+  local data = {}
+  local buff = {4,8,9}
+  table.insert(data,2,{3,4})
+  table.insert(data,4,"测试插入")
+  table.insert(data,3,buff)
+  data.xx = {}
+  buff = {}
+  useful.printTable(data)
+  
+  --[[
+  		<1>：	2	(table)
+              <2>：	1	3	(number)
+              <2>：	2	4	(number)
+          <1>：	3	(table)
+              <2>：	1	4	(number)
+              <2>：	2	8	(number)
+              <2>：	3	9	(number)
+          <1>：	4	测试插入	(string)
+          <1>：	xx	(table)
+  ]]--
+  ```
 
+- 删除：`table.remove(t,index)`
+  
+  > 默认从队尾删除
+  
 - **排序：`table.sort(t, f)`
 
   只能对数组排序
@@ -82,6 +329,115 @@
     	if type
     end
     ```
+
+##### 特性研究
+
+- **引用特性**
+
+  ```lua
+  local x = "测试数据1"
+  local tb = {"谁",true,1900}
+  table.insert(tb,x)
+  x = "测试数据2"			-- string无引用特性，此处更改不会更改tb中的数据
+  useful.printTable(tb)
+  --[[
+  	<1>：	1	谁	(string)
+  	<1>：	2	true	(boolean)
+  	<1>：	3	1900	(number)
+  	<1>：	4	测试数据1	(string)
+  ]]--
+  
+  x = {1,2,3}
+  table.insert(tb,x)
+  x[3] = 100				-- table有引用特性，此处更改会改变tb中的内容
+  useful.printTable(tb)
+  --[[
+  	<1>：	1	谁	(string)
+  	<1>：	2	true	(boolean)
+  	<1>：	3	1900	(number)
+  	<1>：	4	测试数据1	(string)
+  	<1>：	5	(table)
+  		<2>：	1	1	(number)
+  		<2>：	2	2	(number)
+  		<2>：	3	100	(number)	 此处被修改
+  ]]--
+  ```
+
+- 动态插入
+
+  > 利用遍历的方式进行插入
+
+  ```lua
+  local datas = {}
+  local buff
+  local temp
+  for i=1,5 do
+      -- 每次添加新元素必须重定义临时数据
+      -- 不然会由于table的引用特性每一轮都修改之前已添加的元素
+      buff = {}		
+      buff.index = i
+      buff.data = i*10
+      table.insert(datas,buff)
+      if i==3 then
+          -- 此处虽然是在插入后进行的操作，但在同一轮遍历中也会对插入的元素进行修改
+          buff.data = i*10+5
+          temp = buff		-- temp保存的是i=3时的buff内容
+      end
+  end
+  temp.data = 0			-- 此处更改也会影响datas[3]
+  useful.printTable(datas)
+  useful.printTable(temp)
+  ```
+
+- 动态删除
+
+  > 边遍历边删除
+
+  ```lua
+  --[[
+  	<1>：	1	(table)
+  		<2>：	index	1	(number)
+  		<2>：	data	10	(number)
+  	<1>：	2	(table)
+  		<2>：	index	2	(number)
+  		<2>：	data	20	(number)
+  	<1>：	3	(table)
+  		<2>：	index	3	(number)
+  		<2>：	data	0	(number)
+  	<1>：	4	(table)
+  		<2>：	index	4	(number)
+  		<2>：	data	40	(number)
+  	<1>：	5	(table)
+  		<2>：	index	5	(number)
+  		<2>：	data	50	(number)
+  ]]--
+  
+  for i=1,#datas do
+      if i>2 and i<5 then
+          table.remove(datas,i)
+      end
+  end
+  useful.printTable(datas)
+  --[[
+  	i=3时，删除datas[3]
+  	删除后，#datas为4，且data[3]={4,40},data[4]={5,50}
+  	下一轮为i=4，删除datas[4]
+  	结束循环
+  ]]--
+  --[[
+  	<1>：	1	(table)
+  		<2>：	index	1	(number)
+  		<2>：	data	10	(number)
+  	<1>：	2	(table)
+  		<2>：	index	2	(number)
+  		<2>：	data	20	(number)
+  	<1>：	3	(table)
+  		<2>：	index	4	(number)
+  		<2>：	data	40	(number)
+  ]]--
+  ```
+
+  
 
 
 
@@ -1042,7 +1398,6 @@ a = Account:new({balance=10})
 > print(t["name"])	-- 仍会输出，回收无用
 > ```
 >
-> 
 
 ##### 2. 弱引用：weak reference
 
@@ -1065,35 +1420,33 @@ a = Account:new({balance=10})
 ##### 4. 实现：设置元表相应字段
 
 > table的弱引用类型由其 **元表中的__mode字段** 决定
->
-> - 具有弱引用key：`__mode = "k"`
-> - 具有弱引用value：`__mode = "v"`
+
+- 具有弱引用key：`__mode = "k"`
+- 具有弱引用value：`__mode = "v"`
 
 ##### 5. 示例
 
 > 此例中，第二个key={}会覆盖第一个key
 >
-> 垃圾收集时，第一个key和table中相应的条目都会被回收，最后输出的只有 2
+> 垃圾收集时，第一个key **和table中相应的条目** 都会被回收，最后输出的只有 2
 >
 > 若不是弱引用key，则会输出：1和2
 
 ```lua
 a = {}
-b = {__mode="k"}
-setmetatable(a,b)
+b = {__mode="k"}		
+setmetatable(a,b)		-- 设定a的弱引用类型为弱引用key
 key = {}
 a[key] = 1
 key = {}
 a[key] = 2
-collectgarbage()    -- 强制垃圾收集
+collectgarbage()   		-- 强制垃圾收集
 for k,v in pairs(a) do
     print(v)
 end
 ```
 
 
-
-### 
 
 ### 备忘录函数
 
@@ -1238,217 +1591,6 @@ end
 - 设置为随机数生成器种子：`math.randomseed(x)`
 
   > 建议：x = os.time()
-
-
-
-### **table库
-
-
-
-### **字符串库
-
-##### 1. 模式
-
-- 字符分类
-
-  > 大写形式表示补集
-  
-  | 字符 | 含义              | 补充                               |
-  | ---- | ----------------- | ---------------------------------- |
-  | %a   | 字母              | %a+表示所有单词                    |
-  | %c   | 控制字符          |                                    |
-  | %d   | 整数              | %0xd表示至少有x位的数，不足用0补齐 |
-  | %f   | 浮点数            | %.xf表示小数点后保留x位            |
-  | %l   | 小写字母          |                                    |
-  | %p   | 标点              |                                    |
-  | %s   | 字符              |                                    |
-  | %u   | 大写字母          |                                    |
-  | %w   | 字母和数字字符    |                                    |
-| %x   | 十六进制数字      |                                    |
-  | %z   | 内部表示为0的字符 |                                    |
-
-- 魔法字符
-
-  - %：转义字符
-
-  - []：自定义字符集
-
-    > 加入^即可得到补集
-    >
-    > 用 - 连接字符范围的首位
-
-    - 同时匹配数字、字母、下划线：`[%w_]`
-    - 二进制：`[01]`
-    - 元音字母：`[AEIOUaeiou]`
-    - 8进制：`[0-7]`
-
-- 修饰符
-
-  - +：重复>=1次
-
-    - 一个或多个字符：`%a+`
-
-      > 单词
-
-    - 一个或多个数字：`%d+`
-
-      > 整数
-
-  - *：重复>=0次
-
-  - -：重复>=0次
-
-    > 会匹配最短子串
-
-    - 匹配字符串中的注释
-
-      > 若不用-，会使得第一个注释符号与最后一个注释符号匹配
-
-      ```lua
-      string.gsub(text,"/%*.-%*/","注释")
-      ```
-
-  - ?：可选部分（0次或1次）
-
-    - 寻找可带符号的整数：`[+-]?%d+`
-
-- %b：匹配成对字符
-
-  - 匹配()及其中的字符：`"%b()"`
-
-
-##### 2. 匹配模式
-
-- 寻找匹配模式的内容的位置：`string.find(str,mod)`
-
-  > 还可以传入第3个参数，指定**开始搜索的位置**
-
-  - 根据内容寻找
-
-    > ```lua
-    > local str_1 = "What's your name?"
-    > local i,j = string.find(str_1,"name")
-    > print("“name”的位置："..i..", "..j)
-    > ```
-
-  - 寻找匹配模式的内容：
-  
-- **寻找匹配模式的内容：`string.match(str,mod)`
-
-  > 返回字符串中与模式匹配的**部分字符串**
-  >
-  > 一般用**变量格式**进行匹配才有意义
-
-  ```lua
-  local str_2 = "Today is 2022/5/15"
-  local date = string.match(str_2,"%d+/%d+/%d+")
-  print("字符串中的日期：" .. date)		--> 2022/5/15
-  ```
-
-- 对字符串中匹配格式的所有部分进行替换：`string.gsub(str,mode,replace_str)`
-
-  > 可加入第4个参数，限制替换的次数
-  >
-  > 替换内容不能为变量格式
-  >
-  > 因此一般用于**内容替换**
-
-  ```lua
-  local str_3 = str_2 .. ", tomorrow is 2022/5/16"
-  local new_str3 = string.gsub(str_3,"2022","二零二二")
-  print("替换后的str_3：" .. new_str3)
-  
-  -- 也可用于统计内容出现次数
-  count = select(2,string.gsub(str,"内容","替换方式"))
-  ```
-
-- 匹配模式内容迭代器：`string.gmatch(str,pattern)`
-
-  > %a+表示单词
-
-  ```lua
-  local str_4 = "苹果的英文是apple，刀塔原名DotA，SC是星际争霸的简称"
-  for w in string.gmatch(str_4,"%a+") do
-      print(w)	--> apple,DotA,SC
-  end
-  
-  
-  -- 模拟require寻找模块的策略
-  function search(modname,path)
-      -- 将 . 替换成 /
-      modname = string.gsub(modname,"%.","/")
-      for c in string.gmatch(path,"[^;]+") do
-          -- 用模块名替换路径用分号分开的各部分中的?
-          local fname = string.gsub(c,"?",modname)
-          local f = io.open(fname)
-          if f then
-              f:close()
-              return fname
-          end
-      end
-      return nil      -- 未找到
-  end
-  ```
-
-##### 3. 格式化输出：`string.format(mod,str)`
-
-> ```lua
-> print(string.format("format实例：\n\tpi = %.2f",math.pi))
-> -- pi = 3.14
-> ```
-
-##### 4. 捕获：
-
-- 使用()将match匹配到的内容分割
-
-  - 匹配相应格式后的字符
-
-    ```lua
-    local str_5 = "name = dsh, 出生日期：1999/08/14"
-    -- 匹配字段和等号后的内容
-    local name = string.match(str_5,"%a+%s*=%s*(%a+)")
-    local year,month,day = string.match(str_5,"(%d+)/(%d+)/(%d+)")
-    ```
-
-  - 匹配引号中的内容：`"([\"'])(.-)%l"`
-
-    > 先捕获引号本身
-    >
-    > 再捕获引号中的内容
-
-  - 匹配长字符串：`"%[(=*)%[(.-)%]%l%]"`
-
-    > 匹配：[，0个或多个=，另一个[，任意内容，]，相同数量的=，]
-
-- **使用gsub对匹配内容进行格式化替换
-
-  - 替换日期格式
-
-    ```lua
-    local new_str5 = 
-    	string.gsub("出生日期：1999/08/14","(%d+)/(%d+)/(%d+)","%1-%2-%3")
-    print(new_str5)		-- 1999-08-14
-    ```
-
-  - **交换相邻字符
-
-    ```lua
-    string.gsub(text,"(.)(.)","%2%1")
-    ```
-
-  - 剔除字符串两端的空格
-
-    > ^和$表示操作整个字符串
-
-    ```
-    string.gsub(text,"^%s*(.-)%s*$","%l")
-    ```
-
-    
-
-
-
-
 
 
 
