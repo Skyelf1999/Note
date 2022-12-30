@@ -232,25 +232,40 @@
   - 序号项遍历：`for i,v in ipairs(tb) do ... end`
 
     > 无法遍历非数字序号字段
-
+    >
+    > 优先遍历自动分配序号的字段
+    >
+    > 若 **序号不连续则停止遍历**
+  
+    ```lua
+    t_hash = {[2]=199, ["我"]="狄仕豪",[3]="哈哈哈",game = "dota",[1]=9,0,100,[5]=true}
+    --[[
+    	第一个自动分配序号的元素为0，虽然定义了t_hash[1]=9，但遍历时优先访问0
+    	虽然t_hash[5]存在，但因为t_hash[4]不存在，因此ipairs不会遍历t_hash[5]
+    	ipairs结果：
+            1	0
+            2	100
+            3	哈哈哈
+    ]]--
+    ```
+  
   - 混合遍历：`for k,v in pairs(tb) do ... end`
   
     > **优先按顺序遍历序号项**，再遍历字段项
     >
-    > 字段项无序
+    > 若自定义序号中断，则归为字段项
     
     ```lua
-    t_hash = {[2]=199, ["我"]="狄仕豪",["你"]="什么",[0]="哈哈哈",game = "dota"}
-    for i,v in pairs(t_hash) do
-        print(i,v)
-    end
+    t_hash = {[2]=199, ["我"]="狄仕豪",[3]="哈哈哈",game = "dota",[1]=9,0,100,[5]=true}
+    
     --[[
-    	0	哈哈哈
-        2	199
+    	虽然t_hash[5]存在，但因为t_hash[4]不存在，因此t_hash[5]归为字段项
+        1	0
+        2	100
+        3	哈哈哈
         我	狄仕豪
+        5	true
         game	dota
-        你	什么
-        dota
     ]]--
     ```
 
@@ -350,6 +365,8 @@
   x = {1,2,3}
   table.insert(tb,x)
   x[3] = 100				-- table有引用特性，此处更改会改变tb中的内容
+  -- x和tb[5]地址相同
+  
   useful.printTable(tb)
   --[[
   	<1>：	1	谁	(string)
@@ -374,7 +391,7 @@
   for i=1,5 do
       -- 每次添加新元素必须重定义临时数据
       -- 不然会由于table的引用特性每一轮都修改之前已添加的元素
-      buff = {}		
+      buff = {}	-- 此操作生成新的表，地址与上一轮的buff不同		
       buff.index = i
       buff.data = i*10
       table.insert(datas,buff)
@@ -441,8 +458,59 @@
 
 
 
-
 ### 函数
+
+##### 定义
+
+```lua
+function 函数名(参数)
+    return 返回值
+end
+```
+
+##### 参数传递
+
+- 空参数
+
+  > 不传入参数，相当于传入nil
+
+  ```lua
+  local function isNil(data)
+      if data then
+          print(1)
+      elseif not data then
+          print(2)
+      end
+  end
+  
+  isNil(nil)		-- 1
+  isNil()			-- 1
+  isNil(false)	-- 1
+  isNil(true)		-- 2
+  isNil(10)		-- 2
+  ```
+
+- 参数表
+
+  > 
+
+  ```lua
+  local function printParams(...)
+      local params = {...}
+      for i=1,#params do
+          print(params[i])
+      end
+  end
+  
+  printParams(10,"你好",false,nil)
+  --[[
+      10
+      你好
+      false
+  ]]--
+  ```
+
+  
 
 
 
@@ -468,7 +536,83 @@
 
 # 迭代器
 
-##### 1. **泛型for与迭代器
+##### 基础概念
+
+> 迭代器本质上是一个 **遍历进度控制器**，用于在遍历时 **每一轮调用一次**，以获取当前访问的对象
+
+```lua
+local datas = {"s",1999,true}
+
+-- 方法：创建迭代器
+local function createIterator(t)
+    local index = 0
+    -- 迭代器本体：获取本轮的访问对象
+    -- 此类型迭代器不接收参数，访问的对象t通过closure保存
+    return function()		
+        index = index+1     -- 本轮遍历到的index
+        return t[index]		-- 返回本轮遍历的对象
+    end
+end
+
+for e in createIterator(datas) do
+    print(e)
+end
+--[[
+	初始：
+		local iter = createIterator(datas)
+	第一轮：
+		e = iter()	-->datas[1]
+		print(e)
+	第二轮：
+		e = iter()	-->datas[2]
+		print(e)
+	...
+]]--
+```
+
+##### **泛型for与迭代器
+
+- **使用方法**：`for <var_list> in <exp> do ... end`
+
+  - <var_list>：1个或多个变量名，用逗号分隔
+
+    > 第一个元素为 **控制变量** ，当该变量为nil时，停止循环
+
+  - <exp>是对 **迭代器创建方法** 的调用
+
+    > 实际上，直接填写迭代器创建方法的返回结果也可以
+
+- **具体步骤**
+
+  ```lua
+  -- for循环等价代码
+  do
+      -- 获得：迭代器、恒定状态、控制变量
+      local iter,dataTable,index = <exp>
+      while true do 
+      	local v1,v2,... = iter(state,index)
+          index = v1	-- 此次调用迭代器得到的第一个结果作为下一轮访问的index
+          if index==nil then break end
+          -- 进行循环体的操作，例如访问dataTable[index]
+      end
+  end
+  ```
+
+  - 在 **循环开始前**，调用<exp>，用<var_list>接收返回值
+
+    > 多余的返回值被抛弃，数量不足的会用 **nil** 补齐
+
+    - 迭代器 iter
+
+    - 状态常量 state
+
+      > 一般为 table
+
+    - 控制变量 var
+
+      > 一般为索引 index
+
+  - **for重复调用 iter(state,var)，直到var=nil
 
 - 默认迭代器
 
@@ -481,44 +625,42 @@
   - `ipairs(table)`
 
     > 只能识别key为标准数字的键值对，有序
+
+    ```lua
+    -- ipairs生成的迭代器
+    -- 该迭代器接收参数，不必用closure保存访问的table，而是通过参数传入
+    local function iter(t,i)
+        i = i+1
+        local v = t[i]
+        if v then
+            return i,v
+        end
+    end
+    
+    function ipairs(t)
+    	return iter,t,0
+    end
+    ```
+
   - `pairs(table)`
 
     > 当key为非标准数字时，无序
 
-- 使用方法：`for <var_list> in <exp> do ... end`
+    ```lua
+    -- next是Lua的一个基本函数
+    function next(t,key)
+        -- 当 key==nil 时，返回t的第一组k-v
+        -- 当没有下一组k-v时，返回nil
+        -- 否则返回任意一组k-v
+        -- 注：k是string类型
+    end
+    
+    function pairs(t)
+        return next,t,nil
+    end
+    ```
 
-- **具体步骤
-
-  ```lua
-  -- 等价代码
-  do
-      local iter,state,var = <exp>
-      while true do 
-      	local v1,v2,...,vn = iter(state,var)
-          var = v1	-- 此次调用迭代器得到的第一个结果作为下次使用迭代器的参数
-          if var==nil then break end
-          -- 进行 v1,v2,...,vn 相关操作（如输出）
-      end
-  end
-  ```
-
-  - 对表达式求值（一般是调用迭代器生成函数），返回：
-
-    > 数量不足的会用 **nil** 补齐
-
-    - 迭代器 iter
-
-    - 状态常量 state|
-
-      > 一般为 table
-
-    - 控制变量 var
-
-      > 一般为索引 index
-
-  - **for重复调用 iter(state,var)，直到var=nil
-
-##### 2. 链表迭代器
+##### 链表迭代器
 
 > 初次迭代：getNext(head, nil) --> head
 >
@@ -659,41 +801,41 @@ end
 > -- 根据传入的数据，创建新的集合
 > -- 处于集合中的元素表现为：set[data]=true
 > function Set.new(l)
->  local set = {}
->  setmetatable(set,mt)    -- 将mt设置为当前所创建的table的元表
->  for _,v in ipairs(l) do
->      set[v] = true
->  end
->  return set
+>      local set = {}
+>      setmetatable(set,mt)    -- 将mt设置为当前所创建的table的元表
+>      for _,v in ipairs(l) do
+>          set[v] = true
+>      end
+>      return set
 > end
 > 
 > -- 并集
 > function Set.union(a,b)
->  local res = {}
->  for k in pairs(a) do res[k]=true end
->  for k in pairs(b) do res[k]=true end
->  return res
+>      local res = {}
+>      for k in pairs(a) do res[k]=true end
+>      for k in pairs(b) do res[k]=true end
+>      return res
 > end
 > 
 > -- 交集
 > function Set.intersection(a,b)
->  local res = Set.new{}
->  for k in pairs(a) do
->      res[k] = b[k]
->  end
->  return res
+>      local res = Set.new{}
+>      for k in pairs(a) do
+>          res[k] = b[k]
+>      end
+>      return res
 > end
 > 
 > -- 输出
 > function Set.tostring(set)
->  local l = {}
->  for e in pairs(set) do
->      l[#l+1] = e
->  end
->  return "{" .. table.concat(l,",") .. "}"
-> end
-> function Set.print(s)
->  print(Set.tostring(s))
+>      local l = {}
+>      for e in pairs(set) do
+>          l[#l+1] = e
+>      end
+>      return "{" .. table.concat(l,",") .. "}"
+>     end
+>     function Set.print(s)
+>      print(Set.tostring(s))
 > end
 > 
 > -- 元方法
@@ -806,14 +948,14 @@ end
 
 ### table访问的元方法
 
-##### 1. **不存在的字段处理：`__index`
+##### **不存在的字段处理：`__index`
 
 > 使用**当前table和字段作为参数**，调用__index
 >
 > 新创建的w中没有width字段，于是调用元表中的 __index
 >
-> - 当__index对应一个**方法**时，**传入table和字段**：`tb.__index(tb,xxx)`
-> - 当__idnex对一个**table**时，**在此table中寻找**字段对应的值：`tb.__index.xxx`
+> - 当__index对应一个**方法**时，**传入当前表table和字段**：`tb.__index(tb,xxx)`
+> - 当__idnex对一个**table**时 ，**在此table中寻找**字段对应的值：`tb.__index.xxx`
 >
 > 在此例中，程序将在 Window.prototype 中寻找此字段
 >
@@ -822,44 +964,25 @@ end
 > 可实现表的**默认值**实现
 
 ```lua
-Window = {}
-
--- 窗体原型：存储默认属性、默认元表
-Window.prototype = {x=0, y=0, width=100, height=100}
-Window.mt = {}
-
---构造函数（传入一个table以设定基础属性）
-function Window.new(o)
-    setmetatable(o,Window.mt)
-    return o
+local datas = {"s",1999,true,game="DotA",name="dsh"}
+local mt = {}
+-- __index是一个方法
+mt.__index = function (tb,index)
+    return string.format("[%s] 不存在",tostring(index))
 end
+setmetatable(datas,mt)
 
-------------------------------------------------------------------
-
--- __index：当目标字段不在table中时的处理办法
-Window.mt.__index = function(table, key)
-    return Window.prototype[key]
-end
-
--- 创建新的窗口
-w = Window.new{x=10,y=20}
-print(w.width)
---[[
-	w本身并不包含width字段
-	因此，调用w的元表中的__index，即Window.mt.__index
-	这是个方法，于是传入参数进行调用：Window.mt.__index(w,width)
-	返回：Window.prototyoe[width]，即默认的 width=10
-]]--
+print(datas[9])		-- [9] 不存在
 ```
 
-##### 2. 更新方法：`__newindex`
+##### 更新方法：`__newindex`
 
-##### 3. table默认值设置实现
+##### table默认值设置实现
 
 ```lua
 -- 调用此方法将默认值与table绑定，使__index字段返回默认值
 function setDefault(t,d)
-    local mt = {__index = function() return d  end}
+    local mt = {__index = function() return d end}
     setmetatable(t,mt)
 end
 
@@ -868,7 +991,7 @@ setDefault(new_table,999)
 print(new_table.z)  -->999
 ```
 
-##### 4. **只读table的实现
+##### **只读table的实现
 
 > 这种table实际上不含任何值，其数据全都在元表中的__index字段里
 >
