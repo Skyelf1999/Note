@@ -58,6 +58,8 @@ Rigidbody rb = other.gameObject.GetComponent<Rigidbody>();
 
 ### 键盘控制移动
 
+##### 使用 transform
+
 ```c#
 float v = 1.0f;
 float dt = Time.fixedDeltaTime;
@@ -81,6 +83,22 @@ public void MoveSmooth()
     transform.Rotate(Vector3.up * Input.GetAxis("Mouse X")*v*5);
     // 倾斜（只倾斜模型）
     transform.GetChild(0).localEulerAngles = new Vector3(vertical * 20, 0, -horizontal * 20);
+}
+```
+
+##### 刚体速度设置
+
+```c#
+public void moveVelocity()
+{
+    if(Input.GetKeyUp(KeyCode.Space))
+    {
+        // 跳跃
+        rigidbody.velocity = new Vector2(rigidbody.velocity.x, jumpV);
+        print("跳跃！");
+    }
+    rigidbody.velocity = new Vector2 (Input.GetAxisRaw("Horizontal")*velocityScale, rigidbody.velocity.y);
+
 }
 ```
 

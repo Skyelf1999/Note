@@ -88,6 +88,8 @@
 ##### 3. Update() / FixedUpdate()
 
 > 按帧/时间执行
+>
+> 若涉及刚体等 **物理运算**，建议使用FixedUpdate
 
 ##### 4. LateUpdate()
 
@@ -131,6 +133,10 @@
 ![image-20220314171822876](Untiy.assets/image-20220314171822876.png)
 
 ![image-20220314172400370](Untiy.assets/image-20220314172400370.png)
+
+
+
+### 脚本调用
 
 
 
@@ -562,6 +568,8 @@ public class FirstSpell : MonoBehaviour
   - 推测连续 Continuous Speculative
 
 - 运动限制 Constraints
+
+- 速度 velocity
 
 ##### 对象方法
 
@@ -1011,7 +1019,7 @@ public void OnDrawGizmos()
 - 抬起：`boolean Input.GetKeyUp(KeyCode.按键)`
 - 按住：`boolean Input.GetKey(KeyCode.按键)`
 
-##### 键盘、手柄方向轴输入
+##### 方向轴输入
 
 > 无论什么设备，大部分输入都与 **Vertical、Horizontal** 两个轴相关
 >
