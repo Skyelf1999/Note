@@ -29,6 +29,8 @@ public void AttackEnd()
 委托?.Invoke()
 ```
 
+------
+
 
 
 ### 组件
@@ -49,6 +51,20 @@ Rigidbody rb = other.gameObject.GetComponent<Rigidbody>();
 ##### 颜色Color
 
 - 创建：`Color color = new Color(float r, float g, float b, float a);`
+
+------
+
+
+
+### 位置
+
+##### 位置变换
+
+- 镜头-->世界：`Vector3 position = Camera.main.ScreenToWorldPoint(Vector3 pos)`
+
+------
+
+
 
 
 

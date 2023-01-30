@@ -83,6 +83,10 @@
 
 ##### 1. Awake()
 
+> 当GameObject激活但禁用脚本时，仍会执行Awake
+>
+> 说明只要GameObject激活，脚本就会加载到内存中
+
 ##### 2. Start()
 
 ##### 3. Update() / FixedUpdate()
@@ -134,9 +138,9 @@
 
 ![image-20220314172400370](Untiy.assets/image-20220314172400370.png)
 
+##### 控制脚本
 
-
-### 脚本调用
+- 控制是否执行：`GetComponent<string ScriptName>().enable = true/false`
 
 
 
@@ -387,6 +391,14 @@ public class FirstSpell : MonoBehaviour
 ------
 
 
+
+
+
+
+
+# 镜头 Camera
+
+### 
 
 
 
