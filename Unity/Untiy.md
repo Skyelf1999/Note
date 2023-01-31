@@ -167,6 +167,8 @@ public class FirstSpell : MonoBehaviour
 
 ### **委托
 
+> 批量执行同类函数
+
 ##### 委托：delegate
 
 - 针对情况：事件驱动
@@ -265,8 +267,8 @@ public class FirstSpell : MonoBehaviour
 
 - 使用
 
-  - 无参数：`action()`
-  - 有参数：`action(参数1, 餐数2, ...)`
+  - 无参数执行：`action()`
+  - 有参数执行：`action(参数1, 餐数2, ...)`
 
 - 例子
 
@@ -467,6 +469,10 @@ public class FirstSpell : MonoBehaviour
 
 - 绝对：`transform.lossyScale`
 - 相对：`transform.localScale`
+
+##### 层级关系
+
+- 设置父节点：`transform.SetParent(Transform parentTF)`
 
 
 
@@ -2245,7 +2251,9 @@ public class UIManager : MonoBehaviour
 - 返回延迟操作：`yield return`
 
   > 执行到此处，会将指令挂起，直到yield return返回的操作结束
-
+  >
+  > 甚至可用此方式多次返回结果
+  
   ```c#
   // 等待几秒
   yield returnyield return new WaitForSeconds(float seconds);
@@ -2386,7 +2394,7 @@ IEnumerator ListenerI()
 
   ![image-20221030141728206](Untiy.assets/image-20221030141728206.png)
 
-- 加载预制体
+- 加载预制体资源
 
   > 加载后即可使用 **Instantiate** 进行复制
 
@@ -2395,6 +2403,16 @@ IEnumerator ListenerI()
   - 异步加载
   
     ```c#
+    void Start()
+    {
+        // 利用协程加载
+        StartCoroutine(LoadPrefabAsync("xxx"));
+        
+        // 利用事件监听加载
+        ResourceRequest request = Resources.LoadAsync<GameObject>("xxx");
+        request.completed += LoadOver;		// 结束后，自动调用LoadOver
+    }
+    
     IEnumerator LoadPrefabAsync(string name)
     {
         // 创建请求
@@ -2406,6 +2424,12 @@ IEnumerator ListenerI()
         newBullet = Instantiate(originBullet);
         newBullet.SetActive(true);
         newBullet.transform.SetParent(transform);
+    }
+    
+    // 请求结束监听
+    void LoadOver(AsynOperation rq)
+    {
+        print("加载完毕");
     }
     ```
   
@@ -2421,6 +2445,131 @@ IEnumerator ListenerI()
 > 用 **入队代替销毁**
 >
 > 如此一来，**当队列非空时，不会创建新的复制体**
+
+##### 对象池控制类
+
+```c#
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class Factory
+{
+    /* 
+    	多类对象的对象池，以方便实现对多种Prefab的控制
+    		对象名称 - 对象池
+    */
+    Dictionary<string,Queue<GameObject>> objectPool;
+    // 池游戏对象，用于作为池中对象的父节点，方便后续统一管理
+    GameObject pool;    
+    // 加载的预制体
+    GameObject originSquareRed;
+    GameObject originCapsuleBlue;
+    
+    public Factory()
+    {
+        // 该对象将直接加入到场景中
+        pool = new GameObject("Pool");
+        objectPool = new Dictionary<string, Queue<GameObject>>();
+        // 加载预制体
+        ResourceRequest request_1 = Resources.LoadAsync<GameObject>("SquareRed");
+        request_1.completed += LoadOverSqureRed;
+        ResourceRequest request_2 = Resources.LoadAsync<GameObject>("CapsuleBlue");
+        request_2.completed += LoadOverCapsuleBlue;
+        Debug.Log("对象池创建完毕");
+    }
+
+    // 加载预制体
+    void LoadOverSqureRed(AsyncOperation request)
+    {
+        originSquareRed = (request as ResourceRequest)?.asset as GameObject;
+        Debug.Log("SquareRed 加载完毕");
+    }
+    void LoadOverCapsuleBlue(AsyncOperation request)
+    {
+        originCapsuleBlue = (request as ResourceRequest)?.asset as GameObject;
+        Debug.Log("CapsuleBlue 加载完毕");
+    }
+
+    // 获得一个预制体对象
+    public GameObject getObject(string name)
+    {
+        GameObject ob;
+        if(!objectPool.ContainsKey(name) || objectPool[name].Count==0)
+        {
+            // 实例化
+            if(name=="SquareRed")
+                ob = GameObject.Instantiate(originSquareRed);
+            else ob = GameObject.Instantiate(originCapsuleBlue);
+            ob.transform.SetParent(pool.transform);
+            pushObject(ob);
+        }
+        ob = objectPool[name].Dequeue();
+        ob.SetActive(true);
+        
+        return ob;
+    }
+
+    // 回收对象
+    public void pushObject(GameObject ob)
+    {
+        ob.SetActive(false);
+        // 获得对象复制体对应的本体名称
+        string name = ob.name.Replace("(Clone)",string.Empty);
+        if(!objectPool.ContainsKey(name))
+            objectPool.Add(name,new Queue<GameObject>());
+        objectPool[name].Enqueue(ob);
+    }
+}
+```
+
+##### 使用
+
+```c#
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class TestPrefabCtrl : MonoBehaviour
+{
+    Factory factory;
+    // Start is called before the first frame update
+    void Start()
+    {
+        // 初始化对象池管理
+        factory = new Factory();
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        if(Input.GetKeyUp(KeyCode.Mouse0))
+        {
+            var ob = factory.getObject("SquareRed");
+            ob.transform.position = Camera.main.ScreenToWorldPoint(Input.mousePosition+ new Vector3(0,0,10));
+            // print(Input.mousePosition);
+            StartCoroutine(RecycleObject(ob));
+        }
+        if(Input.GetKeyUp(KeyCode.Mouse1))
+        {
+            
+            var ob = factory.getObject("CapsuleBlue");
+            ob.transform.position = Camera.main.ScreenToWorldPoint(Input.mousePosition+ new Vector3(0,0,10));
+            // print(Input.mousePosition);
+            StartCoroutine(RecycleObject(ob));
+        }
+    }
+
+    IEnumerator RecycleObject(GameObject ob)
+    {
+        yield return new WaitForSecondsRealtime(2f);
+        factory.pushObject(ob);		// 2s后，回收
+    }
+}
+
+```
+
+
 
 ------
 
