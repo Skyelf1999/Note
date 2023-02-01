@@ -558,6 +558,12 @@ public class FirstSpell : MonoBehaviour
 
 ### 刚体 Rigidbody
 
+> 用于模拟物体受力
+>
+> 若刚体的速度低于sleepAngularVelocity和sleepVelocity
+>
+> 就会在一定帧后设置为 **休眠状态** ，不在进行碰撞监测和物理模拟
+
 ##### 常见属性
 
 ![image-20220911105611947](Untiy.assets/image-20220911105611947.png)
@@ -618,9 +624,9 @@ public class FirstSpell : MonoBehaviour
 
 > 只有 **双方都具备Collider** 时才会发生碰撞
 >
-> 只有 **具有Rigidbody** 的对象会受到碰撞的影响
+> 只有 **具有Rigidbody** 的对象会受到碰撞的影响（因为有刚体才能进行物理行为模拟）
 >
-> 不具备刚体的物体则只能作为碰撞物体，本身不发生运动
+> 不具备刚体的物体则只能作为静止的被碰撞物体，本身不发生运动
 
 ##### 自定义形状：碰撞体编辑器
 
@@ -674,32 +680,42 @@ public class TestController : MonoBehaviour
 >
 > ![image-20220828102837215](Untiy.assets/image-20220828102837215.png)
 
-```c#
-public class TestController : MonoBehaviour
-{
-    // 碰撞触发器
-    private void OnTriggerEnter(Collision collision)
-    {
-        // 开始碰撞
-    }
+- **条件**
 
-    private void OnTriggerStay(Collision collision)
-    {
-        // 碰撞中
-        /*
-        	注意：
-        		一般需要在触发时持续判断的事件
-        		建议结合状态变量在Update中判断
-        		因为OnTriggerStay的执行频率不够高
-        */
-    }
+  - 双方都有Collider
+  - 必须有一方带有Rigidbody且是运动的
+  - 至少有一方开启了IsTrigger
 
-    private void OnTriggerExit(Collision collision)
-    {
-        // 碰撞结束
-    }
-}
-```
+- 触发函数
+
+  ```c#
+  public class TestController : MonoBehaviour
+  {
+      // 碰撞触发器
+      private void OnTriggerEnter(Collision collision)
+      {
+          // 开始碰撞
+      }
+  
+      private void OnTriggerStay(Collision collision)
+      {
+          // 碰撞中
+          /*
+          	注意：
+          		一般需要在触发时持续判断的事件
+          		建议结合状态变量在Update中判断
+          		因为OnTriggerStay的执行频率不够高
+          */
+      }
+  
+      private void OnTriggerExit(Collision collision)
+      {
+          // 碰撞结束
+      }
+  }
+  ```
+
+  
 
 ##### 鼠标碰撞处理
 
@@ -1042,10 +1058,12 @@ public void OnDrawGizmos()
 > 无论什么设备，大部分输入都与 **Vertical、Horizontal** 两个轴相关
 >
 > 有效避免判断到底是哪个按键的问题
+>
+> 可用于高效实现玩家控制角色移动
 
 - 获取轴输入：`float Input.GetAxis("轴名称")`
 
-  > 连续值，操作后渐变
+  > **连续值**，操作后 **渐变**
 
   - 键盘、手柄轴：Horizontal、Vertical
 
@@ -1054,6 +1072,10 @@ public void OnDrawGizmos()
   - 鼠标轴：Mouse X、Mouse Y
 
     > 可不断增大
+  
+- 获取轴输入（方向）：`float Input.GetAxisRaw(string name)`
+
+  > 返回：-1、0、1
 
 
 ##### 鼠标输入
