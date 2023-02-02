@@ -385,10 +385,32 @@ public class FirstSpell : MonoBehaviour
 - 标签：`string tag`
 - 变换组件：`Transform transform`
   - 设置父对象：`SetParent(Transform transform)`
-  - 获取子对象组件：`组件[] transform.GetComponentsInChildren<组件>();`
-  - 获取子对象：`GameObject child = transform.GetChild(int index)`
+  - 获取子对象组件：`组件类型[] transform.GetComponentsInChildren<组件>();`
+  - **获取子对象**：`GameObject child = transform.GetChild(int index)`
   
 - 是否激活：`SetActive(bool choice)`
+
+##### 方法
+
+- **查找目标游戏对象**
+
+  - 根据名称：`GameObject ob = GameObject.Find(string name)`
+
+    > 名称格式可以为：
+    >
+    > - "xxx"
+    > - "/xxx"
+    > - "父对象/子对象"
+
+  - 根据标签
+
+    - 单个：`GameObject ob = GameObject.FindWithTag(string tag)`
+    - 多个：`GameObject[] obArray = GameObject.FindGameObjectsWithTag(string tag)`
+
+  - 根据类型
+
+    - 单个：`GameObject ob = GameObject.FindObjectOfType(string type)`
+    - 多个：`GameObject[] obArray = GameObject.FindObjectsOfType(string type)`
 
 ------
 
@@ -445,7 +467,9 @@ public class FirstSpell : MonoBehaviour
 
 ##### 位置
 
-- 绝对：`transform.position`
+- 绝对：`Vector3D transform.position`
+
+  > 在2D中，可以用Vector2D接收
 - 相对：`transform.local`
 - 移动
   - 向量累加：`transform.position += new Vector3(0.01f,0,0)`
@@ -779,7 +803,7 @@ public class TestController : MonoBehaviour
 >
 > 可用于仿真射击判定
 
-- **检测结果**信息存储变量：`RaycastHit hitInfo`
+- **检测结果**数据结构：`RaycastHit hitInfo`
 
   > 用于接收检测到的第一个对象
 
@@ -789,7 +813,7 @@ public class TestController : MonoBehaviour
   - 碰撞点位置：`hitInfo.point`
   - 碰撞面法线：`hitInfo.normal`
   
-- **返回第一个对象**：
+- **检测第一个对象**：
 
   - `bool res = Physics.Raycast(Vector3 origin, Vector3 dir,out hitInfo)`
 
@@ -812,6 +836,8 @@ public class TestController : MonoBehaviour
         }
     }
     ```
+    
+  - 2D射线检测：`public static RaycastHit2D Raycast(Vector2 origin, Vector2 direction, float distance);`
 
 
 - 返回所有对象：`RaycastHit[] res = Physics.RaycastAll`

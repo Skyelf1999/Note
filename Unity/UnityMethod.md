@@ -29,7 +29,36 @@ public void AttackEnd()
 委托?.Invoke()
 ```
 
-------
+##### 访问其他脚本成员
+
+- 设置目标成员为静态成员
+
+  > 适用于少量允许访问的对象
+
+- 在目标脚本中设置静态访问实例
+
+  > 适用于允许访问的对象较多时
+
+  ```c#
+  // 此脚本为需要在其他位置访问的脚本
+  public class A: MonoBehaviour 
+  {
+  	public static A instance; // 提供给外部用于访问的静态实例
+   
+   	// 使用Awake()确保单例模式在使用前已被初始化
+  	void Awake()
+      {
+  		instance = this;
+  	}
+   	
+   	// 其他脚本通过 A.instance.成员 即可访问
+   	public int name;
+  
+  }
+  
+  ```
+
+  
 
 
 
