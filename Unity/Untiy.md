@@ -849,6 +849,29 @@ public class TestController : MonoBehaviour
     ```
     
   - 2D射线检测：`public static RaycastHit2D Raycast(Vector2 origin, Vector2 direction, float distance);`
+  
+    > 注意：当无碰撞对象时，返回null
+  
+    ```c#
+    // 检测玩家是否在地面上
+    void GroundCheck()
+    {
+        // 不能从玩家身上发射，否则会先碰撞到玩家
+        Debug.DrawRay(transform.position+new Vector3(0,-0.505f,0),new Vector2(0,-0.2f),Color.cyan);
+        hitInfo = Physics2D.Raycast(transform.position+new Vector3(0,-0.505f,0),new Vector2(0,-1),0.1f);
+        if(hitInfo)
+        {
+            print(hitInfo.collider.name);
+            if(hitInfo.collider.tag=="Ground" && isJump)
+            {
+                print("落地");
+                isJump = false;
+            }
+        }
+    }
+    ```
+  
+    
 
 
 - 返回所有对象：`RaycastHit[] res = Physics.RaycastAll`
