@@ -89,6 +89,8 @@
 
 ##### 2. Start()
 
+> 注意：物体重新激活后不会再执行Start
+
 ##### 3. Update() / FixedUpdate()
 
 > 按帧/时间执行
