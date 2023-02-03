@@ -296,24 +296,35 @@ public class FirstSpell : MonoBehaviour
   }
   ```
 
+##### UnityAction
+
+- 定义
+- 使用
+
 ##### **UnityEvent
 
 > 与Action类似
 
 - 引入：`using UnityEngine.Events`
 
-- 定义：`pulbic UnityEvent<T> action;`
+- 定义
 
-  > 注：若非使用界面直接进行绑定，请在此步骤创建对象
+  - `pulbic UnityEvent<T> action;`
+
+    > 注：此方式定以后必须在界面上绑定事件
+
+  - 直接定义对象：`UnityEvent event = new UnityEvent<T>()`
 
 - 常用操作
 
-  - 绑定：`action.AddListener(方法名)`
+  - 绑定：`event.AddListener(UnityAction action)`
 
   - 解除
 
-    - 单独：`action.RemoveListener(方法名)`
-    - 全部：`action.RemoveAllListeners()`
+    - 单独：`event.RemoveListener(方法名)`
+    - 全部：`event.RemoveAllListeners()`
+
+  - 调用：`event?.Invoke(参数)`
 
   - 直接操作
 
