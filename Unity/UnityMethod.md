@@ -210,3 +210,73 @@ private void MouseClick()
 ##### 是否在地面
 
 ##### 前进方向
+
+------
+
+
+
+
+
+
+
+# 检测
+
+### 碰撞检测
+
+##### 使用刚体、碰撞体
+
+##### Physics图层检测
+
+> 指定检测对象所在的Layer
+
+- 相关方法
+
+  - `Physics.OverlapBox`
+    - Vector3 center
+    - Vector3 halfExtents
+    - Quaternion orientation
+    - layerMask
+    - QueryTriggerInteraction queryTriggerInteraction
+  - `Physics.OverlapC`apsule
+  - `Physics.OverlapSphere`
+
+- 示例：子弹检测
+
+  ```c#
+  public class Bullet : MonoBehaviour
+  {
+      LayerMask layerMask;
+      
+      void Start()
+      {
+          // 指定检测哪些Layer
+          layerMask = LayerMask.GetMask("图层1","图层2");
+      }
+      
+      void FixedUpdate()
+      {
+          // 获取碰撞对象
+          var collider = Physics2D.OverlapBox(transform.position, transform.localScale, 0, layerMask);
+          if(collider)
+          {
+              // 碰撞处理
+          }
+      }
+  }
+  ```
+
+------
+
+
+
+
+
+
+
+# QFramework
+
+### 基础
+
+##### 
+
+### 使用

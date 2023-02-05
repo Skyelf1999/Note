@@ -424,6 +424,8 @@ public class FirstSpell : MonoBehaviour
 
     - 单个：`GameObject ob = GameObject.FindObjectOfType(string type)`
     - 多个：`GameObject[] obArray = GameObject.FindObjectsOfType(string type)`
+  
+- 判断tag：`bool ob.CompareTag(string tag)`
 
 ------
 
@@ -510,6 +512,7 @@ public class FirstSpell : MonoBehaviour
 ##### 层级关系
 
 - 设置父节点：`transform.SetParent(Transform parentTF)`
+- 获取子对象
 
 
 
@@ -1637,11 +1640,13 @@ public class UIManager : MonoBehaviour
 
 - 点击事件设定
 
-  - 直接设定
+  - 直接绑定 **无参监听事件**
 
     > 可以在界面中直接设定点击事件
     >
     > 但此方法 **只能设置无参数的UnityEvent**
+    >
+    > 一般当Btn **只需要处理简单的点击事件** 时，采用此方式
 
     ![image-20221003153053503](Untiy.assets/image-20221003153053503.png)
 
@@ -1654,7 +1659,7 @@ public class UIManager : MonoBehaviour
     using UnityEngine.UI;
     
     
-    // 管理各种UI事件
+    // 管理各种UI事件的脚本
     public class UIManager : MonoBehaviour
     {
         public Button btnTest;		// 需要在界面中设定对应的游戏对象
@@ -1678,13 +1683,14 @@ public class UIManager : MonoBehaviour
     using UnityEngine;
     using UnityEngine.EventSystems;
     
+    // 目标Btn自己的脚本
     public class BtnTest : MonoBehaviour,
                                            IPointerClickHandler, IPointerEnterHandler
     {
         // 点击
         public void OnPointerClick(PointerEventData eventData)
         {
-           print(eventData.pointerClick);		// 输出点击的Btn
+           print(eventData.pointerClick);		// 输出点击的Btn对象
            TempleEvents.btnPointEvent[(int)TempleEvents.PointerEvent.Click]?.Invoke(eventData);
         }
     
@@ -1702,6 +1708,52 @@ public class UIManager : MonoBehaviour
   > 设置后，可使用方向键自由选中Button
 
   ![image-20221117112327934](Untiy.assets/image-20221117112327934.png)
+  
+- 测试
+
+  ```c#
+  using System.Collections;
+  using System.Collections.Generic;
+  using UnityEngine;
+  using UnityEngine.UI;
+  using UnityEngine.Events;
+  using UnityEngine.EventSystems;
+  
+  public class BtnPause : MonoBehaviour,
+                                              IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
+  {
+      bool isPlaying;
+  
+      void Start()
+      {
+          isPlaying = true;
+          UIEvent.Pause?.Invoke(isPlaying);
+          transform.GetChild(0).gameObject.GetComponent<Text>().text = "正在播放：" + isPlaying.ToString();
+  
+  
+      }
+  
+      public void OnPointerClick(PointerEventData eventData)
+      {
+          print(eventData.pointerClick);
+          // 点击后，暂停
+          isPlaying = !isPlaying;
+          UIEvent.Pause?.Invoke(isPlaying);
+          // 设置子对象的文字内容
+          transform.GetChild(0).gameObject.GetComponent<Text>().text = "正在播放："+isPlaying.ToString();
+      }
+  
+      public void OnPointerEnter(PointerEventData eventData)
+      {
+          
+      }
+  
+      public void OnPointerExit(PointerEventData eventData)
+      {
+      }
+  }
+  
+  ```
 
 ##### Toggle
 
@@ -1859,7 +1911,7 @@ public class UIManager : MonoBehaviour
     ![image-20221128104034096](Untiy.assets/image-20221128104034096.png)
   - 约束量：`int gridLG.constraintCount`
 
-##### Dropdown
+##### 下拉框 Dropdown
 
 - 结构
   ![image-20221128104747084](Untiy.assets/image-20221128104747084.png)
@@ -1878,12 +1930,18 @@ public class UIManager : MonoBehaviour
 
   - 模板：`RectTransform dropDown.template`
 
+    > 本质上是一个ScrollView
+    >
+    > 其下的Content的RectTransform的高度决定了可显示选项的多少
+    >
+    > 若高度不够则只能显示部分选项
+
   - 标题
 
     - 标题文本：`Text dropDown.captionText`
     - 标题图像：`Image dropDown.captionImage`
 
-  - 项模板
+  - 项模板对象
 
     > Template下的Item，单个选项
 
@@ -1900,45 +1958,53 @@ public class UIManager : MonoBehaviour
 
   > 传入选中选项在 **options** 中的 **序号**
 
-  ```c#
-  using System.Collections;
-  using System.Collections.Generic;
-  using UnityEngine;
-  using UnityEngine.UI;
+- 测试
   
+  - 脚本
   
-  public class DropdownController : MonoBehaviour
-  {
-      Dropdown dropDown;
-      Text textTitle;
-      Dropdown.OptionData optionTest;
-      
-      void Start()
-      {
-          dropDown = GetComponent<Dropdown>();
-          dropDown.options.Add(new Dropdown.OptionData("新建选项"));
-          dropDown.onValueChanged.AddListener();
-      }
+    ```c#
+    using System.Collections;
+    using System.Collections.Generic;
+    using UnityEngine;
+    using UnityEngine.UI;
+    
+    
+    public class DropdownController : MonoBehaviour
+    {
+        Dropdown dropDown;
+        Text textTitle;
+        Dropdown.OptionData optionTest;
+        
+        void Start()
+        {
+            dropDown = GetComponent<Dropdown>();
+            dropDown.options.Add(new Dropdown.OptionData("新建选项"));
+            dropDown.onValueChanged.AddListener();
+        }
+    
+        // Update is called once per frame
+        void Update()
+        {
+            
+        }
+    
+        // 监听函数可以在界面绑定
+        public void Report(int index)
+        {
+            Debug.LogFormat("当前选项：{0} {1}",index, dropDown.options[index].text);
+        }
+    
+        public void AddOption(string newOption)
+        {
+            dropDown.options.Add(new Dropdown.OptionData(newOption));
+        }
+    }
+    ```
   
-      // Update is called once per frame
-      void Update()
-      {
-          
-      }
+  - 效果
+    ![image-20230204180239303](Untiy.assets/image-20230204180239303.png)
+    ![image-20221128105854000](Untiy.assets/image-20221128105854000.png)
   
-      public void Report(int index)
-      {
-          Debug.LogFormat("当前选项：{0} {1}",index, dropDown.options[index].text);
-      }
-  
-      public void AddOption(string newOption)
-      {
-          dropDown.options.Add(new Dropdown.OptionData(newOption));
-      }
-  }
-  ```
-
-  ![image-20221128105854000](Untiy.assets/image-20221128105854000.png)
 
 ##### Inputfield
 
