@@ -277,6 +277,73 @@ private void MouseClick()
 
 ### 基础
 
-##### 
+##### 底层Architecture
+
+##### IController 
+
+> 表现层
+
+- 接收底层状态变化
+
+-  更新UI
+
+- 获取System
+
+- 获取Model
+
+- 注册Event
+
+- 发送查询命令Query
+
+- **发送Command**
+
+  > 实现表现层和底层的交互逻辑
+
+##### ISystem
+
+- 封装多个表现层的共享逻辑
+
+  > 游戏计时
+  >
+  > 成就
+
+- 注册Event
+
+- 发送Event
+
+##### IModel
+
+> 数据层
+
+- 数据操作
+- 获取Utility
+- 发送Event
+
+##### IUtility
+
+> 区分对象工具和静态工具
+
+
 
 ### 使用
+
+------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
