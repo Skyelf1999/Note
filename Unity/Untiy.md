@@ -501,8 +501,19 @@ public class FirstSpell : MonoBehaviour
 ##### 姿态
 
 - 绝对：`transform.eulerAngles`
-- 相对：`transform.localEulerAngles(Vector3)`
-- 旋转：`transform.Rotate(1,0,0)`
+
+  > 相对世界坐标系
+  >
+  > x、y、z分别表示绕3个轴旋转的绝对角度
+- 相对：`Vector3 transform.localEulerAngles`
+
+  > x、y、z分别表示绕自身3个轴旋转的角度
+  >
+  > 面板上显示的也是这个值
+- 设置绝对姿态：`Quaternion.Euler transform.rotation`
+- 旋转运动：`transform.Rotate(x,y,z)`
+
+  > 绕自身3轴分别以x、y、z速度旋转
 
 ##### 缩放
 
@@ -516,7 +527,7 @@ public class FirstSpell : MonoBehaviour
 
 
 
-### 常用方法
+### 常见应用
 
 ##### 移动控制
 
