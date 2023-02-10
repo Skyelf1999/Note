@@ -282,18 +282,16 @@ private void MouseClick()
 ##### IController 
 
 > 表现层
+>
+> 一般情况下，MonoBehaviour 均为表现层
 
 - 接收底层状态变化
 
 -  更新UI
 
-- 获取System
+- 获取 System、Model
 
-- 获取Model
-
-- 注册Event
-
-- 发送查询命令Query
+- 接收、监听Event
 
 - **发送Command**
 
@@ -307,13 +305,15 @@ private void MouseClick()
   >
   > 成就
 
-- 注册Event
+- 获取 System、Model
 
-- 发送Event
+- 接收、发送Event
 
 ##### IModel
 
 > 数据层
+>
+> 负责数据的定义、数据的 **增删查改** 方法的提供
 
 - 数据操作
 - 获取Utility
@@ -322,10 +322,43 @@ private void MouseClick()
 ##### IUtility
 
 > 区分对象工具和静态工具
+>
+> 负责提供基础设施，比如存储方法、序列化方法、网络连接方法、蓝牙方法、SDK、框架继承等
+>
+> 可以集成第三方库，或者封装API
+
+##### ICommand
+
+* 可以获取System
+* 可以获取Model
+* 可以发送Event
+* 可以发送Command
+
+##### **通信机制
+
+![QFrame基础机制](UnityMethod.assets/QFrame基础机制.png)
+
+- 表层对象可获取底层对象
+- IController 对底层操作只能用Command
+- 底层控制IController只能用 Event
+- 只有 ISystem、IModel 能够注册Event
+- 只有 ISystem、IController 能够监听Event
 
 
 
 ### 使用
+
+##### 安装
+
+* QFramework.cs 
+  * 直接复制[此代码](QFramework.cs)到自己项目中的任意脚本中
+* QFramework.cs 与 官方示例
+  * [点此下载 unitypackage](./QFramework.cs.Examples.unitypackage)
+
+* QFramework.ToolKits
+  * [点此下载 unitypackage](./QFramework.Toolkits.unitypackage)
+* QFramework.ToolKitsPro
+  * 从 [AssetStore](http://u3d.as/SJ9) 安装
 
 ------
 

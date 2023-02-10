@@ -2399,15 +2399,17 @@ public class UIManager : MonoBehaviour
 
 
 
-### 协程 IEnumerator
+### 协程/枚举器 IEnumerator
 
 > 运行在同一线程上
+>
+> 实际上是枚举器
 
 ##### 脚本控制
 
 - 定义协程方法：`IEnumerator 方法名(参数类型 参数)`
 
-- 启动协程：`StartCoroutine(方法名(参数));`
+- 启动协程方法：`StartCoroutine(方法名(参数));`
 
 - 返回延迟操作：`yield return`
 
