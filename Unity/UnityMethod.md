@@ -340,13 +340,12 @@ private void MouseClick()
 
 - 表层对象可获取底层对象
 - IController 对底层操作只能用Command
+- IController之间只能通过 Command--Event 交互
 - 底层控制IController只能用 Event
 - 只有 ISystem、IModel 能够注册Event
 - 只有 ISystem、IController 能够监听Event
 
 
-
-### 使用
 
 ##### 安装
 
@@ -359,6 +358,386 @@ private void MouseClick()
   * [点此下载 unitypackage](./QFramework.Toolkits.unitypackage)
 * QFramework.ToolKitsPro
   * 从 [AssetStore](http://u3d.as/SJ9) 安装
+
+
+
+### 数据类 BindableProperty
+
+##### 关系图
+
+##### 源码
+
+```c#
+public class BindableProperty<T> : IBindableProperty<T>
+{
+    public BindableProperty(T defaultValue = default)
+    {
+        mValue = defaultValue;
+    }
+
+    protected T mValue;
+
+    public T Value
+    {
+        get => GetValue();
+        set
+        {
+            if (value == null && mValue == null) return;
+            if (value != null && value.Equals(mValue)) return;
+
+            SetValue(value);
+            mOnValueChanged?.Invoke(value);
+        }
+    }
+
+    protected virtual void SetValue(T newValue)
+    {
+        mValue = newValue;
+    }
+
+    protected virtual T GetValue()
+    {
+        return mValue;
+    }
+
+    public void SetValueWithoutEvent(T newValue)
+    {
+        mValue = newValue;
+    }
+
+    private Action<T> mOnValueChanged = (v) => { };
+
+    public IUnRegister Register(Action<T> onValueChanged)
+    {
+        mOnValueChanged += onValueChanged;
+        return new BindablePropertyUnRegister<T>()
+        {
+            BindableProperty = this,
+            OnValueChanged = onValueChanged
+        };
+    }
+
+    public IUnRegister RegisterWithInitValue(Action<T> onValueChanged)
+    {
+        onValueChanged(mValue);
+        return Register(onValueChanged);
+    }
+
+    public static implicit operator T(BindableProperty<T> property)
+    {
+        return property.Value;
+    }
+
+    public override string ToString()
+    {
+        return Value.ToString();
+    }
+
+    public void UnRegister(Action<T> onValueChanged)
+    {
+        mOnValueChanged -= onValueChanged;
+    }
+}
+```
+
+##### 主要成员
+
+- 数据：`T Value`
+
+  > 本身为protected
+  >
+  > 提供了对外的get、set
+
+- 值变动监听：`private Action<T> mOnValueChanged = (v) => { };`
+
+  > 在对数据进行set时，若存在对应Action，调用
+
+##### 常用方法
+
+- 创建对象：`BindableProperty<T> 变量名 {get;set;} = new BindableProperty<T>(T 初始值);`
+
+- 访问数据：`变量.Value`
+
+- 注册值监听
+
+  - `变量.Register(Action<T> onValueChanged)`
+
+  - `变量.RegisterWithInitValue`
+
+    > 与前者区别在于会在注册时先用当前数据调用一次监听Action
+
+##### 示例
+
+```c#
+using UnityEngine;
+
+namespace QFramework.Example
+{
+    public class BindablePropertyExample : MonoBehaviour
+    {
+        // 创建变量
+        private BindableProperty<int> mSomeValue = new BindableProperty<int>(0);
+        private BindableProperty<string> mName = new BindableProperty<string>("QFramework");
+        
+        // 注册监听
+        void Start()
+        {
+            mSomeValue.Register(newValue =>
+            {
+                Debug.Log(newValue);
+            }).UnRegisterWhenGameObjectDestroyed(gameObject);
+
+            mName.RegisterWithInitValue(newName =>
+            {
+                Debug.Log(mName);
+            }).UnRegisterWhenGameObjectDestroyed(gameObject);
+        }
+        
+        void Update()
+        {
+
+            if (Input.GetMouseButtonDown(0))
+            {
+                mSomeValue.Value++;
+            }
+        }
+    }
+}
+
+
+// 输出结果
+// QFramework
+// 按下鼠标左键,输出:
+// 1
+// 按下鼠标左键,输出:
+// 2
+```
+
+
+
+### Event
+
+> 本质上是结构体？？
+
+##### 定义
+
+```c#
+public struct ActiveDestinationEvt
+{
+
+}
+```
+
+
+
+### ICommand
+
+##### 定义
+
+```c#
+public class ActiveDestinationCmd : AbstractCommand
+{
+    // 必须实现的方法
+    protected override void OnExecute()
+    {
+        this.SendEvent<ActiveDestinationEvt>();
+    }
+}
+```
+
+##### 常用方法
+
+- 发送Event：`this.SendEvent<Event结构体类型>();`
+- 
+
+
+
+### IModel
+
+##### 预定义虚Model类
+
+> QFrame中定义的抽象类，实现IModel
+>
+> 可视为一个简略的Model，方便创建自定义Model
+
+```c#
+public abstract class AbstractModel : IModel
+{
+    // 架构
+    private IArchitecture mArchitecturel;
+
+    // IModel所需实现的架构类相关方法
+    // 继承了此类的Model不必再自己写一遍相关方法
+    IArchitecture IBelongToArchitecture.GetArchitecture()
+    {
+        return mArchitecturel;
+    }
+    void ICanSetArchitecture.SetArchitecture(IArchitecture architecture)
+    {
+        mArchitecturel = architecture;
+    }
+
+    void IModel.Init()
+    {
+        OnInit();
+    }
+	
+    // 继承该抽象类的Model必须实现其相应的初始化方法
+    protected abstract void OnInit();
+}
+```
+
+##### 自定义Model规范与实现
+
+> 项目内不同的Model有各自的规范，通过定义接口来规定这些规范
+
+```c#
+// 通过接口规定本项目中的 GameModel 规范
+public interface IGameModel : IModel
+{
+    // 规定属性
+    BindableProperty<int> Score {get;}
+}
+
+
+public class GameModel : AbstractModel, IGameModel
+{
+    // 实现接口规定的属性
+    BindableProperty<int> IGameModel.Score {get;} = new BindableProperty<int>(0);
+	
+    // 实现AbstractModel的抽象方法
+    protected override void OnInit()
+    {
+        // throw new NotImplementedException();
+    }
+}
+```
+
+
+
+### IArchitecture
+
+> 底层框架
+
+##### 定义
+
+```c#
+public class 框架类名称 : Architecture<框架类名称>
+{
+    protected override void Init()
+    {
+        
+    }
+}
+```
+
+##### 常用方法
+
+- 注册Model：`RegisterModel<自定义IModel>(new 自定义Model());`
+- 注册System：``
+
+##### 示例
+
+```c#
+// 实现QF底层类
+public class PlatformShootingGame : Architecture<PlatformShootingGame>
+{
+    protected override void Init()
+    {
+        // 注册本项目的 IModel
+        RegisterModel<IGameModel>(new GameModel());
+    }
+}
+```
+
+
+
+### IController
+
+##### 定义
+
+```c#
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+using QFramework;
+
+namespace QFPlatformShooting
+{
+    public class QFUIManager : MonoBehaviour, IController
+    {
+		// 必须实现的底层类相关方法：返回本项目框架接口
+        IArchitecture IBelongToArchitecture.GetArchitecture()
+        {
+            return PlatformShootingGame.Interface;
+        }
+
+        void Start()
+        {
+            
+        }
+
+        // Update is called once per frame
+        void Update()
+        {
+
+        }
+        
+    }
+    
+    
+}
+```
+
+##### 常用方法
+
+- 获取Model：`this.GetModel<T>()`
+- 获取System
+- 注册监听的Event：`this.RegisterEvent<Event结构体类型>(处理方法)`
+
+  > 事件发生时，会将事件结构体传入处理方法
+
+  ```c#
+  // 关卡终点
+  public class QFDestination : MonoBehaviour , IController
+  {
+      IArchitecture IBelongToArchitecture.GetArchitecture()
+      {
+          return PlatformShootingGame.Interface;
+      }
+  
+      // Start is called before the first frame update
+      void Start()
+      {
+          gameObject.SetActive(false);
+          // 注册监听的Event
+          this.RegisterEvent<ActiveDestinationEvt>(OnActiveDestination);
+      }
+  
+      // 事件处理方法
+      // 当事件“激活终点”发生时，激活游戏对象
+      private void OnActiveDestination(ActiveDestinationEvt obj)
+      {
+          gameObject.SetActive(true);
+      }
+  }
+  ```
+
+- 发送Command
+
+  - `this.SendCommand<Command类名>();`
+  - `this.SendCommand(new Command类名());`
+
+
+##### 示例
+
+
+
+### ISystem
+
+##### 定义
 
 ------
 

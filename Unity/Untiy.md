@@ -437,7 +437,11 @@ public class FirstSpell : MonoBehaviour
 
 # 镜头 Camera
 
-### 
+### 脚本控制
+
+##### 常用方法
+
+- 获取主相机：`GameObject Camera.main`
 
 
 
