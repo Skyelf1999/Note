@@ -87,7 +87,7 @@ Rigidbody rb = other.gameObject.GetComponent<Rigidbody>();
 
 ### 位置
 
-##### 位置变换
+##### 坐标变换
 
 - 镜头-->世界：`Vector3 position = Camera.main.ScreenToWorldPoint(Vector3 pos)`
 
@@ -225,19 +225,21 @@ private void MouseClick()
 
 ##### 使用刚体、碰撞体
 
+##### 射线检测
+
 ##### Physics图层检测
 
 > 指定检测对象所在的Layer
 
 - 相关方法
 
-  - `Physics.OverlapBox`
-    - Vector3 center
+  - 盒形检测：`Physics.OverlapBox`
+    - 检测中心点：`Vector3 center`
     - Vector3 halfExtents
     - Quaternion orientation
-    - layerMask
+    - 目标图层：`LayerMask layerMask`
     - QueryTriggerInteraction queryTriggerInteraction
-  - `Physics.OverlapC`apsule
+  - `Physics.OverlapCapsule`
   - `Physics.OverlapSphere`
 
 - 示例：子弹检测

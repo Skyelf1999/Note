@@ -397,10 +397,6 @@ public class FirstSpell : MonoBehaviour
 - 名称：`string name`
 - 标签：`string tag`
 - 变换组件：`Transform transform`
-  - 设置父对象：`SetParent(Transform transform)`
-  - 获取子对象组件：`组件类型[] transform.GetComponentsInChildren<组件>();`
-  - **获取子对象**：`GameObject child = transform.GetChild(int index)`
-  
 - 是否激活：`SetActive(bool choice)`
 
 ##### 方法
@@ -528,6 +524,9 @@ public class FirstSpell : MonoBehaviour
 
 - 设置父节点：`transform.SetParent(Transform parentTF)`
 - 获取子对象
+  - 获取子对象组件：`组件类型[] transform.GetComponentsInChildren<组件>();`
+  - **获取子对象**：`GameObject child = transform.GetChild(int index)`
+
 
 
 
@@ -536,7 +535,8 @@ public class FirstSpell : MonoBehaviour
 ##### 移动控制
 
 - 指定按键控制
-- ```c#
+
+  ```c#
   float v = 1.0f;
   void Update()
   {
@@ -683,6 +683,12 @@ public class FirstSpell : MonoBehaviour
 >
 > 不具备刚体的物体则只能作为静止的被碰撞物体，本身不发生运动
 
+##### 组件属性
+
+- 碰撞体大小：`Vector2 collider.size`
+
+  > 一般规则的碰撞体都有
+
 ##### 自定义形状：碰撞体编辑器
 
 ![image-20220828095416513](Untiy.assets/image-20220828095416513.png)
@@ -770,7 +776,6 @@ public class TestController : MonoBehaviour
   }
   ```
 
-  
 
 ##### 鼠标碰撞处理
 
