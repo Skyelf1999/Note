@@ -626,6 +626,8 @@ public class ActiveDestinationCmd : AbstractCommand
 
 ### IModel
 
+> 一般用于保存本次游戏的相关数据
+
 ##### 预定义虚Model类
 
 > QFrame中定义的抽象类，实现IModel
@@ -662,6 +664,8 @@ public abstract class AbstractModel : IModel
 ##### 自定义Model规范与实现
 
 > 项目内不同的Model有各自的规范，通过定义接口来规定这些规范
+>
+> 用这种方式可以清晰地将自定义Model的属性、方法列在接口中，并在类里实现
 
 ```c#
 // 通过接口规定本项目中的 GameModel 规范
@@ -726,6 +730,8 @@ public class PlatformShootingGame : Architecture<PlatformShootingGame>
 
 ### IController
 
+> 挂载在游戏对象上，直接控制游戏对象
+
 ##### 定义
 
 ```c#
@@ -766,7 +772,55 @@ namespace QFPlatformShooting
 ##### 常用方法
 
 - 获取Model：`this.GetModel<T>()`
-- 获取System
+
+  ```c#
+  using System;
+  using System.Collections;
+  using System.Collections.Generic;
+  using UnityEngine;
+  using UnityEngine.UI;
+  using QFramework;
+  
+  namespace QFPlatformShooting
+  {
+      public class QFUIManager : MonoBehaviour, IController
+      {
+          public Text ScoreText;
+  
+          IArchitecture IBelongToArchitecture.GetArchitecture()
+          {
+              return PlatformShootingGame.Interface;
+          }
+  
+  
+          void Start()
+          {
+              if (ScoreText == null) ScoreText = GameObject.Find("UI/Canvas/ScoreText").GetComponent<Text>();
+              this.GetModel<IGameModel>().Score.Register(OnScoreChanged).UnRegisterWhenGameObjectDestroyed(gameObject);
+          }
+  
+  
+          ///////////////////////// UI相关方法 /////////////////////////
+          // 当前分数增加
+          // 注册为BindableProperty的监听时间，每当值变更时，也改变UI
+          void OnScoreChanged(int score)
+          {
+              ScoreText.text = ScoreText.text.Substring(0,3) + score.ToString();
+              print("当前分数："+score);
+              if(score==2) this.SendCommand<ActiveDestinationCmd>();
+          }
+  
+          
+      }
+  }
+  ```
+
+  
+- 获取System：`this.GetSystem<T>()`
+
+  ```c#
+  this.GetSystem<ICameraSystem>().SetTarget(transform);
+  ```
 - 注册监听的Event：`this.RegisterEvent<Event结构体类型>(处理方法)`
 
   > 事件发生时，会将事件结构体传入处理方法
@@ -810,6 +864,11 @@ namespace QFPlatformShooting
 ### ISystem
 
 ##### 定义
+
+##### 常用方法
+
+- 发送Event
+- 获取Model
 
 ------
 
