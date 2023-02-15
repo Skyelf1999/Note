@@ -87,9 +87,31 @@ Rigidbody rb = other.gameObject.GetComponent<Rigidbody>();
 
 ### 位置
 
+##### 获取位置
+
 ##### 坐标变换
 
 - 镜头-->世界：`Vector3 position = Camera.main.ScreenToWorldPoint(Vector3 pos)`
+
+
+
+### 数学工具 Mathf
+
+##### 变量控制
+
+- 区间控制：`float Mathf.Clamp(float x,float min,float max)`
+
+  > 常用于防止数据越界
+  >
+  > x<min，返回min
+  >
+  > x>max，返回max
+  >
+  > 否则返回x
+
+- 步长趋近：`float Mathf.MoveTowards(float x,float y,float delta)`
+
+  > 将x向y最大移动delta
 
 ------
 
@@ -133,19 +155,51 @@ public void MoveSmooth()
 
 ##### 刚体速度设置
 
-```c#
-public void moveVelocity()
-{
-    if(Input.GetKeyUp(KeyCode.Space))
-    {
-        // 跳跃
-        rigidbody.velocity = new Vector2(rigidbody.velocity.x, jumpV);
-        print("跳跃！");
-    }
-    rigidbody.velocity = new Vector2 (Input.GetAxisRaw("Horizontal")*velocityScale, rigidbody.velocity.y);
+- 直接设置速度
 
-}
-```
+  ```c#
+  void MoveStandard()
+  {
+      // 跳跃
+      if (Input.GetKey(KeyCode.Space)&&!isJump)    
+      {
+          rb.velocity = new Vector2(rb.velocity.x, jumpVelocity);
+          // print("跳跃！");
+          isJump = true;
+      }
+  	// 水平移动
+      float curDir = Input.GetAxisRaw("Horizontal");
+      if(dir+curDir==0)
+      {
+          dir = (int)curDir;
+      }
+      rb.velocity = new Vector2(curDir * vScale, rb.velocity.y);
+  }
+  ```
+
+- 平滑移动
+
+  ```c#
+  void MoveSmooth()
+  {
+      // 水平移动
+      float curDir = Input.GetAxisRaw("Horizontal");
+      if(curDir!=0)
+      {
+          float vx = Mathf.Clamp(rb.velocity.x+curDir*accDelta,-vScale,vScale);
+          rb.velocity = new Vector2(vx, rb.velocity.y);
+      }
+      else if(curDir==0)
+      {
+          // 减速
+          print("减速中");
+          rb.velocity = new Vector2(Mathf.MoveTowards(rb.velocity.x,0,decDelta), rb.velocity.y);
+      }
+      dir = (int)curDir;
+  }
+  ```
+
+  
 
 
 
@@ -275,6 +329,22 @@ private void MouseClick()
 
 
 
+# 多媒体管理
+
+### 音频管理
+
+##### 意义
+
+- 便于统一管理
+- 防止音频播放混乱
+- 防止因对象销毁而音频播放不完全
+
+
+
+
+
+
+
 # QFramework
 
 ### 基础
@@ -341,9 +411,9 @@ private void MouseClick()
 ![QFrame基础机制](UnityMethod.assets/QFrame基础机制.png)
 
 - 表层对象可获取底层对象
-- IController 对底层操作只能用Command
+- IController 对 System、Model 操作只能用Command
 - IController之间只能通过 Command--Event 交互
-- 底层控制IController只能用 Event
+- 底层控制 IController 只能用 Event
 - 只有 ISystem、IModel 能够注册Event
 - 只有 ISystem、IController 能够监听Event
 

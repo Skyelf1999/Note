@@ -421,7 +421,11 @@ public class FirstSpell : MonoBehaviour
     - 单个：`GameObject ob = GameObject.FindObjectOfType(string type)`
     - 多个：`GameObject[] obArray = GameObject.FindObjectsOfType(string type)`
   
+- 添加组件：`gameObject.AddComponent<T>()`
+
 - 判断tag：`bool ob.CompareTag(string tag)`
+
+- 转场保护：`GameObject.DontDestroyOnLoad(gameObject)`
 
 ------
 
@@ -2297,17 +2301,21 @@ public class UIManager : MonoBehaviour
 ##### 脚本控制
 
 - 获取组件：`AudioSource aSource = GetComponent<AudioSource>();`
+
+- 音效文件：`aSource.clip = Resources.Load<AudioClip>(string dir)`
+
 - 播放控制
+  
+  > 注意：对象的销毁音效最好使用统一的音效管理脚本进行播放，否则易**因对象销毁而播放不完全**
+  
   - 播放：`aSource.Play();`
   - 暂停：`aSource.Pause();`
   - 停止：`aSource.Stop();`
+  - 是否正在播放：`bool isPlaying`
+  
 - 声音控制
   - 音量：`float aSource.volume`
   - 音调：`float aSource.pitch`
-  
-- 音频设置：`aSource.clip = AudioClip aClip;`
-
-  > 切换播放的音频
 
 
 
@@ -2570,8 +2578,12 @@ IEnumerator ListenerI()
 
   > 加载后即可使用 **Instantiate** 进行复制
 
-  - 直接加载：`GameObject prefabObject = Resources.Load<GameObject>(string name);`
+  - 直接加载：`GameObject prefabObject = Resources.Load<GameObject>(string dir);`
 
+    > 路径dir实际上为：`Resourse/dir`
+    >
+    > 即预制体在Resourse下的路径
+  
   - 异步加载
   
     ```c#
