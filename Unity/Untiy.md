@@ -2443,32 +2443,38 @@ public class UIManager : MonoBehaviour
   yield return null;							// 等待一帧
   ```
   
+- 示例
 
-```c#
-// 协程：监听Update中i的值
-IEnumerator ListenerI()
-{
-    while(true)
+  - 是
+
+    ```c#
+    // 协程：监听Update中i的值
+    IEnumerator ListenerI()
     {
-        yield return new WaitForEndOfFrame();
-        if(i==56)
+        while(true)
         {
-            print("协程检测：i=" + i);
-            break;
-        }
-     }
-    yield return new WaitForSeconds(1);
-    while (true)
-    {
-        yield return new WaitForEndOfFrame();
-        if (i == 999)
+            yield return new WaitForEndOfFrame();
+            if(i==56)
+            {
+                print("协程检测：i=" + i);
+                break;
+            }
+         }
+        yield return new WaitForSeconds(1);
+        while (true)
         {
-            print("协程检测：i=" + i);
-            break;
+            yield return new WaitForEndOfFrame();
+            if (i == 999)
+            {
+                print("协程检测：i=" + i);
+                break;
+            }
         }
     }
-}
-```
+    ```
+
+    
+
 
 
 
