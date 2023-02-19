@@ -339,9 +339,17 @@ private void MouseClick()
 - 防止音频播放混乱
 - 防止因对象销毁而音频播放不完全
 
+------
 
 
 
+
+
+# 自定义框架
+
+### 静态管理模型
+
+### 动态管理执行者
 
 
 
@@ -596,7 +604,7 @@ namespace QFramework.Example
 ```c#
 public struct ActiveDestinationEvt
 {
-
+	public bool active;
 }
 ```
 
@@ -815,7 +823,6 @@ namespace QFPlatformShooting
   }
   ```
 
-  
 - 获取System：`this.GetSystem<T>()`
 
   ```c#

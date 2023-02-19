@@ -2592,36 +2592,47 @@ public class UIManager : MonoBehaviour
   
   - 异步加载
   
-    ```c#
-    void Start()
-    {
-        // 利用协程加载
-        StartCoroutine(LoadPrefabAsync("xxx"));
-        
-        // 利用事件监听加载
-        ResourceRequest request = Resources.LoadAsync<GameObject>("xxx");
-        request.completed += LoadOver;		// 结束后，自动调用LoadOver
-    }
+    - 事件监听
     
-    IEnumerator LoadPrefabAsync(string name)
-    {
-        // 创建请求
-        ResourceRequest request = Resources.LoadAsync<GameObject>(name);
-        yield return request;
-    	// 获取加载结果
-        originBullet = (GameObject)request.asset;
-        // 创建复制体
-        newBullet = Instantiate(originBullet);
-        newBullet.SetActive(true);
-        newBullet.transform.SetParent(transform);
-    }
+      ```c#
+      void Start()
+      {
+          // 利用事件监听加载
+          ResourceRequest request = Resources.LoadAsync<GameObject>("xxx");
+          request.completed += LoadOver;		// 结束后，自动调用LoadOver
+      }
+      
+      // 监听
+      void LoadOver(AsynOperation rq)
+      {
+          print("加载完毕");
+      }
+      ```
     
-    // 请求结束监听
-    void LoadOver(AsynOperation rq)
-    {
-        print("加载完毕");
-    }
-    ```
+    - 协程
+    
+      ```c#
+      void Start()
+      {
+          // 启动协程
+          StartCoroutine(LoadPrefabAsync("xxx"));
+      
+      }
+      
+      IEnumerator LoadPrefabAsync(string name)
+      {
+          // 创建请求
+          ResourceRequest request = Resources.LoadAsync<GameObject>(name);
+          yield return request;
+      	// 获取加载结果
+          originBullet = (GameObject)request.asset;
+          // 创建复制体
+          newBullet = Instantiate(originBullet);
+          newBullet.SetActive(true);
+          newBullet.transform.SetParent(transform);
+      }
+      ```
+    
   
 
 
