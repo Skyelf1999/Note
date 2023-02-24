@@ -447,6 +447,16 @@ public class FirstSpell : MonoBehaviour
 
 
 
+# 游戏对象 GameObject
+
+##### 基础特性
+
+- 引用类型
+
+  > 可实现脚本a在目标对象上添加子对象x，脚本b在条件满足时从脚本a获取存储x的变量，并进行操作
+
+
+
 # 变换 Transform
 
 > 属性信息为 **Vector3** 向量类型
@@ -515,9 +525,13 @@ public class FirstSpell : MonoBehaviour
   >
   > 面板上显示的也是这个值
 - 设置绝对姿态：`Quaternion.Euler transform.rotation`
+
+  ```c#
+  bullet.transform.rotation = Quaternion.Euler(0,0,0);
+  ```
 - 旋转运动：`transform.Rotate(x,y,z)`
 
-  > 绕自身3轴分别以x、y、z速度旋转
+  > 绕 **自身** 3轴分别以x、y、z速度旋转
 
 ##### 缩放
 
@@ -527,6 +541,10 @@ public class FirstSpell : MonoBehaviour
 ##### 层级关系
 
 - 设置父节点：`transform.SetParent(Transform parentTF)`
+
+  > 通过 `transform.SetParent(null)`
+  >
+  > 可将对象放到最外层
 - 获取子对象
   - 获取子对象组件：`组件类型[] transform.GetComponentsInChildren<组件>();`
   - **获取子对象**：`GameObject child = transform.GetChild(int index)`
@@ -2589,6 +2607,8 @@ public class UIManager : MonoBehaviour
     > 路径dir实际上为：`Resourse/dir`
     >
     > 即预制体在Resourse下的路径
+    >
+    > 不带文件类型后缀
   
   - 异步加载
   
