@@ -2514,6 +2514,8 @@ public class UIManager : MonoBehaviour
 
 - 加载场景：`SceneManager.LoadScene(int index 或 string name)`
 
+- 获取当前场景：`Scene curScene = SceneManager.GetActiveScene();`
+
 - 协程切换：`AsyncOperation operation = SceneManager.LoadSceneAsync(int index);`
 
   > 返回一个AsyncOperation变量
