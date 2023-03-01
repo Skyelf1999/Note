@@ -83,7 +83,9 @@
 
 ##### 1. Awake()
 
-> 当GameObject激活但禁用脚本时，仍会执行Awake
+> 进入场景时执行
+>
+> 当 **GameObject激活** 但禁用脚本时，仍会执行Awake
 >
 > 说明只要GameObject激活，脚本就会加载到内存中
 
@@ -490,7 +492,7 @@ public class FirstSpell : MonoBehaviour
 
 
 
-### 基础属性
+### 基础属性&方法
 
 > 不能对向量的单个属性进行操作，**必须同一赋值**
 
@@ -548,6 +550,11 @@ public class FirstSpell : MonoBehaviour
 - 获取子对象
   - 获取子对象组件：`组件类型[] transform.GetComponentsInChildren<组件>();`
   - **获取子对象**：`GameObject child = transform.GetChild(int index)`
+  - 查找直接子对象：`GameObject child = transform.Find(string name)`
+  
+    > 与GameObject.Find不同，只能查找直接子对象
+  
+  - 删除所有子对象：`transform.DetachChildren()`
 
 
 
