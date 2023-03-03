@@ -614,6 +614,10 @@ public struct ActiveDestinationEvt
 
 ##### 定义
 
+> 如果想创建支持参数的Command
+>
+> 可以 **自建构造函数接受参数**，并在发送Command的时候使用创建Command对象发方式创建
+
 ```c#
 public class ActiveDestinationCmd : AbstractCommand
 {
@@ -862,6 +866,10 @@ namespace QFPlatformShooting
 
   - `this.SendCommand<Command类名>();`
   - `this.SendCommand(new Command类名());`
+  
+    > 这种方式可以调用对应Command的构造函数
+    >
+    > 因此支持传递参数
 
 
 ##### 示例
