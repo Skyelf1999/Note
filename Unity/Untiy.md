@@ -105,6 +105,8 @@
 >
 > 由此可以固定实现不同物体Update的先后顺序
 
+![img](Untiy.assets/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80NDU1NzEzNQ==,size_16,color_FFFFFF,t_70.png)
+
 
 
 ### 导出
@@ -2460,7 +2462,7 @@ public class UIManager : MonoBehaviour
   > 甚至可用此方式多次返回结果
   
   ```c#
-  // 等待几秒
+  // 等待几秒（WaitForSeconds受Time.timeScale影响）
   yield returnyield return new WaitForSeconds(float seconds);
   yield return new WaitForSecondsRealtime(float seconds);
   yield return new WaitForEndOfFrame();		// 等待本次Update结束
@@ -2858,7 +2860,7 @@ public class TestPrefabCtrl : MonoBehaviour
 
 ### JSON
 
-> 只要 **public变量** 和 **标记为可序列化的类** 可参与转化
+> 只有 **public变量** 和 **标记为可序列化的类** 可参与转化
 
 ##### 对象 --> Json文本
 
@@ -2992,9 +2994,10 @@ print(json);
 ##### 对象文本IO存储
 
 > 文本可以无后缀名，也可自定义后缀
+>
+> `using System.IO;`
 
 - 将对象转换为Json字符串：`string json = JsonUtility.ToJson(对象, bool 是否自动换行);`
-- 引入：`using System.IO;`
 - 创建路径：`string path = Application.persistentDataPath + "/路径/文件名.后缀";`
 - 存储到指定位置：`File.WriteAllText(string path)`
 - 读取：`string data = File.ReadAllText(string path)`
