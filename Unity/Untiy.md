@@ -503,7 +503,7 @@ public class FirstSpell : MonoBehaviour
 - 绝对：`Vector3D transform.position`
 
   > 在2D中，可以用Vector2D接收
-- 相对：`transform.local`
+- 相对：`transform.localPosition`
 - 移动
   - 向量累加：`transform.position += new Vector3(0.01f,0,0)`
   - **直接移动**：`transform.Translate(x,y,z)`
@@ -1201,6 +1201,113 @@ public void OnDrawGizmos()
   > 0-左键，1-右键，2-中键
 
 - 位置：`Vector3 Input.mousePosition`
+
+
+
+### 新输入系统
+
+> 
+
+![img](Untiy.assets/8602b92717954e95b8d3944f84f4397b.png)
+
+##### 基础
+
+- 安装：包管理器 -- Unity注册表 -- 搜索input
+- 测试：windows -- Analysis -- Input Debugger
+  ![image-20230313163748360](Untiy.assets/image-20230313163748360.png)
+
+##### 配置监听
+
+- 创建配置文件：创建 -- Input Action
+  ![image-20230313172117478](Untiy.assets/image-20230313172117478.png)
+
+- 控制方案 Control Scheme
+
+  > 例如：
+  >
+  > ​	角色的移动射击瞄准可以通过键鼠来操控，也可以通过手柄来操控，但一名玩家同时只能选择其中一种方案来操控角色，如果系统 **同时监听不同输入设备的输入信号**，会造成 **CPU资源的浪费**
+
+  ![image-20230313172143263](Untiy.assets/image-20230313172143263.png)
+
+- 动作映射 Action Map
+
+  > 一套输入控制方案
+  >
+  > 例如：方向键在游戏中应控制角色移动，但在UI界面用于切换选项
+
+- 动作行为 Actions
+
+  > 用于对同类型绑定进行分类
+  >
+  > 管理多个Binding与Composite，关联多个Control，为开发者自定义回调函数提供监听的事件
+  >
+  > 提供了5种事件，开发者需要自定义回调函数
+
+  - 阶段事件
+    <img src="Untiy.assets/image-20230313165819120.png" alt="image-20230313165819120" style="zoom:80%;" />
+
+  - Action Type
+
+    > **按压值**：**处于[0,1]的float型** 模拟信号，用于感应按钮是否被按压，按压值 **达到按压阈值时**，按钮才能视为被按下
+    >
+    > **控件消歧**：如果Action绑定了多个Control，选择近期被响应最频繁的控件作为主Control，此Action触发的回调函数将带有来自该Control的参数。
+    >
+    > **初始状态检查**：启用 Action时，Action绑定的Control可能已经具有非默认状态，系统依次检查所有被绑定到此Action的Control，并立即响应处于非默认状态下的控件。
+
+    <img src="Untiy.assets/image-20230313173539233.png" alt="image-20230313173539233" style="zoom:80%;" />
+
+  - Control Type
+
+    > 限定监听的输入类型
+
+    ![image-20230313173746426](Untiy.assets/image-20230313173746426.png)
+
+- 监听绑定
+
+  > 输入系统将 **Action与Control之间的连接** 抽象为Binding
+  >
+  > Binding包含一条指向Control的控件路径，多个Binding可以指向同一个Control，一个Action可包含多个Binding
+  >
+  > 系统收到某个输入时，会 **驱动所有绑定了该输入的Action进行响应**
+
+  - 单独绑定
+    ![image-20230313174727698](Untiy.assets/image-20230313174727698.png)
+
+  - 组合绑定
+
+    > 多个Control同时驱动以模仿一个不同类型的Control
+    >
+    > Composite包含多个Binding，这些被绑定Control的状态值会组合在一起成为一个新状态值传递给逻辑。
+
+    ![image-20230313174756133](Untiy.assets/image-20230313174756133.png)
+
+  - 组合类型
+    <img src="Untiy.assets/image-20230313174958428.png" alt="image-20230313174958428" style="zoom: 80%;" />
+
+  - 模式
+    ![image-20230313175246601](Untiy.assets/image-20230313175246601.png)
+
+  - 交互策略 Interaction
+
+    > 交互策略表示Control状态值触发Action交互事件的某种方案
+    >
+    > 为Binding或Action添加多种交互策略，**添加到Action的交互策略会作用到Action下所有Binding上**
+    >
+    > 如果Binding没有设置交互策略，则根据Action的类型使用默认的交互策略。
+
+  - 处理策略 Processor
+
+    > 处理策略表示Control状态值的一些数值处理方法
+    >
+    > 处理后的结果**作为Action回调函数的参数**供开发者访问
+    >
+    > 添加在Binding或Action上，添加到Action的处理策略会作用到Action下所有Binding上。
+    >
+    > 如果Binding没有设置处理策略，则不作任何处理，直接使用Control的状态值作为回调函数的参数。
+
+    ![image-20230313175744358](Untiy.assets/image-20230313175744358.png)
+
+  - s 
 
 
 

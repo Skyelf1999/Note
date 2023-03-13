@@ -99,7 +99,7 @@ Rigidbody rb = other.gameObject.GetComponent<Rigidbody>();
 
 ##### 变量控制
 
-- 区间控制：`float Mathf.Clamp(float x,float min,float max)`
+- 防止越界：`float Mathf.Clamp(float x,float min,float max)`
 
   > 常用于防止数据越界
   >
@@ -107,8 +107,7 @@ Rigidbody rb = other.gameObject.GetComponent<Rigidbody>();
   >
   > x>max，返回max
   >
-  > 否则返回x
-
+  
 - 步长趋近：`float Mathf.MoveTowards(float x,float y,float delta)`
 
   > 将x向y最大移动delta
@@ -281,12 +280,34 @@ private void MouseClick()
 
 ##### 射线检测
 
+> 缺点：不能从对象身上发射，否则会先碰到本对象
+
+```c#
+// 通过射线检测判断玩家是否在地面上
+void GroundCheckRay()
+{
+    // 不能从玩家身上发射，否则会先碰撞到玩家
+    Debug.DrawRay(transform.position+new Vector3(0,-0.505f,0),new Vector2(0,-0.2f),Color.cyan);
+    hitInfo = Physics2D.Raycast(transform.position+new Vector3(0,-0.505f,0),new Vector2(0,-1),0.1f);
+    if(hitInfo)
+    {
+        // print(hitInfo.collider.name);
+        if(hitInfo.collider.tag=="Ground" && isJump)
+        {
+            // print("落地");
+            isJump = false;
+        }
+    }
+}
+```
+
 ##### Physics图层检测
 
 > 指定检测对象所在的Layer
 
 - 相关方法
 
+  - 获取图层：`LayerMask layerMask = LayerMask.GetMask(string layerName);`
   - 盒形检测：`Physics.OverlapBox`
     - 检测中心点：`Vector3 center`
     - Vector3 halfExtents
