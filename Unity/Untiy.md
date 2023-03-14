@@ -1233,18 +1233,20 @@ public void OnDrawGizmos()
 
   > 一套输入控制方案
   >
-  > 例如：方向键在游戏中应控制角色移动，但在UI界面用于切换选项
+  > 例如：方向键在 [游戏中] 应控制角色移动，但在 [UI界面] 用于切换选项
 
 - 动作行为 Actions
 
-  > 用于对同类型绑定进行分类
+  > 用于对同类型绑定进行 **分类**，例如 移动（WASD或方向键）、跳跃等
   >
   > 管理多个Binding与Composite，关联多个Control，为开发者自定义回调函数提供监听的事件
   >
-  > 提供了5种事件，开发者需要自定义回调函数
+  > 提供了 **5种事件**，开发者需要自定义回调函数
 
-  - 阶段事件
-    <img src="Untiy.assets/image-20230313165819120.png" alt="image-20230313165819120" style="zoom:80%;" />
+  - **阶段事件**
+
+    > 但按住两个相反方向按键时，默认返回Canceled
+    > <img src="Untiy.assets/image-20230313165819120.png" alt="image-20230313165819120" style="zoom:80%;" />
 
   - Action Type
 
@@ -1271,7 +1273,10 @@ public void OnDrawGizmos()
   > 系统收到某个输入时，会 **驱动所有绑定了该输入的Action进行响应**
 
   - 单独绑定
-    ![image-20230313174727698](Untiy.assets/image-20230313174727698.png)
+
+    > 例如：监听手柄左摇杆
+
+    ![image-20230314112107251](Untiy.assets/image-20230314112107251.png)
 
   - 组合绑定
 
@@ -1283,6 +1288,7 @@ public void OnDrawGizmos()
 
   - 组合类型
     <img src="Untiy.assets/image-20230313174958428.png" alt="image-20230313174958428" style="zoom: 80%;" />
+    ![image-20230314111715730](Untiy.assets/image-20230314111715730.png)
 
   - 模式
     ![image-20230313175246601](Untiy.assets/image-20230313175246601.png)
@@ -1307,7 +1313,53 @@ public void OnDrawGizmos()
 
     ![image-20230313175744358](Untiy.assets/image-20230313175744358.png)
 
-  - s 
+##### 配置类
+
+- 创建
+  ![image-20230314141454768](Untiy.assets/image-20230314141454768.png)
+
+- 动作映射对应的接口：`I映射名称Actions`
+  ![image-20230314141748286](Untiy.assets/image-20230314141748286.png)
+
+##### **事件处理
+
+- 创建处理类
+
+  ```c#
+  public class PlayerInputSystem : AbstractSystem, IPlayerInputSystem, GameControl.IPlayMapActions
+  {
+      // 用于注册该处理类
+      GameControl mControls = new GameControl();
+      protected override void OnInit()
+      {
+  		// 将当前类设定为输入处理
+          mControls.PlayMap.SetCallbacks(this);
+      }
+  
+      public void OnJump(InputAction.CallbackContext context)
+      {
+          
+      }
+  
+      public void OnMove(InputAction.CallbackContext context)
+      {
+          Vector2 input = context.ReadValue<Vector2>();
+      }
+  
+      public void OnShoot(InputAction.CallbackContext context)
+      {
+  
+      }
+      
+  }
+  ```
+
+  - 继承映射接口：`GameControl.I映射名称Actions`
+  - 注册处理类：`mControls.映射名称.SetCallbacks(this);`
+
+- 处理事件变量：`InputAction.CallbackContext context`
+
+  - 
 
 
 
