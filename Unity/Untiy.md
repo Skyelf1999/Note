@@ -1216,7 +1216,7 @@ public void OnDrawGizmos()
 - 测试：windows -- Analysis -- Input Debugger
   ![image-20230313163748360](Untiy.assets/image-20230313163748360.png)
 
-##### 配置监听
+##### 绑定监听
 
 - 创建配置文件：创建 -- Input Action
   ![image-20230313172117478](Untiy.assets/image-20230313172117478.png)
@@ -1243,7 +1243,7 @@ public void OnDrawGizmos()
   >
   > 提供了 **5种事件**，开发者需要自定义回调函数
 
-  - **阶段事件**
+  - **动作生命周期**
 
     > 但按住两个相反方向按键时，默认返回Canceled
     > <img src="Untiy.assets/image-20230313165819120.png" alt="image-20230313165819120" style="zoom:80%;" />
@@ -1256,15 +1256,19 @@ public void OnDrawGizmos()
     >
     > **初始状态检查**：启用 Action时，Action绑定的Control可能已经具有非默认状态，系统依次检查所有被绑定到此Action的Control，并立即响应处于非默认状态下的控件。
 
-    <img src="Untiy.assets/image-20230313173539233.png" alt="image-20230313173539233" style="zoom:80%;" />
+    <img src="Untiy.assets/image-20230313173539233.png" alt="image-20230313173539233"  />
 
   - Control Type
 
     > 限定监听的输入类型
-
+    >
+    > 只有 **当ActionType不是Button时** 才可选择
+    >
+    > Vector2接收[-1.0, 1.0]方向
+    
     ![image-20230313173746426](Untiy.assets/image-20230313173746426.png)
 
-- 监听绑定
+- **监听绑定**
 
   > 输入系统将 **Action与Control之间的连接** 抽象为Binding
   >
@@ -1316,50 +1320,180 @@ public void OnDrawGizmos()
 ##### 配置类
 
 - 创建
+  
+  > 类名与文件名自动保持一致
+  
   ![image-20230314141454768](Untiy.assets/image-20230314141454768.png)
-
+  
 - 动作映射对应的接口：`I映射名称Actions`
   ![image-20230314141748286](Untiy.assets/image-20230314141748286.png)
 
-##### **事件处理
+#####  输入变更处理
+
+- 动作变更
+- 设备变更
+
+##### **映射的动作输入处理
+
+> 在进行动作变更处理 **OnActionChange后** ，InputSystem会 **调用当前映射的动作输入处理类**
 
 - 创建处理类
 
-  ```c#
-  public class PlayerInputSystem : AbstractSystem, IPlayerInputSystem, GameControl.IPlayMapActions
-  {
-      // 用于注册该处理类
-      GameControl mControls = new GameControl();
-      protected override void OnInit()
-      {
-  		// 将当前类设定为输入处理
-          mControls.PlayMap.SetCallbacks(this);
-      }
-  
-      public void OnJump(InputAction.CallbackContext context)
-      {
-          
-      }
-  
-      public void OnMove(InputAction.CallbackContext context)
-      {
-          Vector2 input = context.ReadValue<Vector2>();
-      }
-  
-      public void OnShoot(InputAction.CallbackContext context)
-      {
-  
-      }
-      
-  }
-  ```
-
   - 继承映射接口：`GameControl.I映射名称Actions`
   - 注册处理类：`mControls.映射名称.SetCallbacks(this);`
+  - 激活/禁用：`mControls.映射名称.Enable() 或 Disable()`
 
 - 处理事件变量：`InputAction.CallbackContext context`
 
-  - 
+  - 判断生命周期：`bool context.生命周期`
+  
+  - 读取输入
+  
+    > 根据 **ActionType**
+  
+    - Value：`T v = context.ReadValue<T>()`
+  
+      > T根据 **Control Type**
+  
+    - Button：`bool isPressed = context.ReadValueAsButton()`
+  
+- 示例
+
+  - 程序
+
+    ```c#
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading.Tasks;
+    using UnityEngine;
+    using QFramework;
+    using UnityEngine.InputSystem;
+    
+    namespace QFPlatformShooting
+    {
+        // 玩家输入系统
+        public interface IPlayerInputSystem : ISystem
+        {
+            void Enable();
+            void Disable();
+        }
+    
+    
+        // 输入动作的QFrame Event
+        public struct DirInputEvt
+        {
+            public int x;
+            public int y;
+        }
+        public struct JumpInputEvt
+        {
+    
+        }
+        public struct ShootInputEvt
+        {
+            public bool isShooting;
+        }
+    
+    
+        public class PlayerInputSystem : AbstractSystem, IPlayerInputSystem, GameControl.IPlayMapActions
+        {
+            GameControl mControls = new GameControl();
+            DirInputEvt moveDir;
+            JumpInputEvt jump;
+            ShootInputEvt shoot;
+    
+            protected override void OnInit()
+            {
+                // 将当前类设定为目标映射的输入处理
+                mControls.PlayMap.SetCallbacks(this);
+                Enable();
+            }
+            public void Enable()
+            {
+                mControls.PlayMap.Enable();
+            }
+    
+            public void Disable()
+            {
+                mControls.PlayMap.Disable();
+            }
+    
+            public void OnMove(InputAction.CallbackContext context)
+            {
+                // 构造Event并发送
+                if(context.performed)
+                {
+                    // Move的ActionType是Value
+                    Vector2 input = context.ReadValue<Vector2>();
+                    moveDir.x = (int)input.x;
+                    moveDir.y = (int)input.y;
+                    this.SendEvent(moveDir);
+                    Debug.Log(input);
+                }
+                else if(context.canceled)
+                {
+                    moveDir.x = 0;
+                    moveDir.y = 0;
+                    this.SendEvent(moveDir);
+                }
+    
+            }
+    
+            public void OnJump(InputAction.CallbackContext context)
+            {
+                
+                if(context.started)
+                {
+                    Debug.Log("新输入系统：跳跃");
+                    this.SendEvent(jump);
+                } 
+            }
+    
+            public void OnShoot(InputAction.CallbackContext context)
+            {
+                if(context.started)
+                {
+                    // Shoot的ActionType是Button
+                    shoot.isShooting = context.ReadValueAsButton();
+                    this.SendEvent(shoot);
+                }
+            }
+    
+    
+        }
+    }
+    ```
+
+  - 结果
+    ![image-20230318101203166](Untiy.assets/image-20230318101203166.png)
+
+
+##### 设备变更
+
+- 处理事件：
+
+  - 变更后的输入设备
+
+  - 设备状态：`InputActionChange change`
+
+    ```c#
+    namespace UnityEngine.InputSystem
+    {
+        public enum InputActionChange
+        {
+            ActionEnabled = 0,
+            ActionDisabled = 1,
+            ActionMapEnabled = 2,
+            ActionMapDisabled = 3,
+            ActionStarted = 4,
+            ActionPerformed = 5,				// 执行输入操作
+            ActionCanceled = 6,
+            BoundControlsAboutToChange = 7,
+            BoundControlsChanged = 8
+        }
+    }
+    ```
 
 
 
