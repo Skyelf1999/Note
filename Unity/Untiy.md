@@ -1328,14 +1328,82 @@ public void OnDrawGizmos()
 - 动作映射对应的接口：`I映射名称Actions`
   ![image-20230314141748286](Untiy.assets/image-20230314141748286.png)
 
-#####  输入变更处理
+#####  **输入变更处理
 
-- 动作变更
+> InputSystem会自动监听输入设备和输入动作（不一定被当前映射处理）的变动
+>
+> 关键在添加监听方法，不一定要创建单独的类
+
+- Action变更
+
+  > 不特指某个Action
+
+  - 系统监听：`Action<object, InputActionChange> onActionChange`
+
+    - 动作状态
+
+      ```c#
+      public enum InputActionChange
+      {
+          ActionEnabled = 0,
+          ActionDisabled = 1,
+          ActionMapEnabled = 2,
+          ActionMapDisabled = 3,
+          ActionStarted = 4,
+          ActionPerformed = 5,
+          ActionCanceled = 6,
+          BoundControlsAboutToChange = 7,
+          BoundControlsChanged = 8
+      }
+      ```
+  - 注册自定义处理：`InputSystem.onActionChange += OnActionChange;`
+  - 处理函数示例
+
+    ```c#
+    // 动作变更时，检测当前输入设备
+    void DetectCurInputDevice(object ob, InputActionChange change)
+    {
+        // 当前Action的状态，当玩家未进行操作时直接返回
+        if(change!=InputActionChange.ActionPerformed) return;
+        // 获取输入设备
+        InputDevice device = (ob as InputAction).activeControl.device;
+        // 设定当前设备
+        SetCurDevice(device);
+    }
+    ```
+
 - 设备变更
 
-##### **映射的动作输入处理
+  - 系统监听：`Action<InputDevice, InputDeviceChange> onDeviceChange`
+
+    - 设备类型
+    - 设备状态：`InputDeviceChange`
+
+      ```c#
+      public enum InputDeviceChange
+      {
+          Added = 0,
+          Removed = 1,
+          Disconnected = 2,
+          Reconnected = 3,
+          Enabled = 4,
+          Disabled = 5,
+          UsageChanged = 6,
+          ConfigurationChanged = 7,
+          SoftReset = 8,
+          HardReset = 9,
+          Destroyed = 10
+      }
+      ```
+
+
+  
+
+##### **映射动作输入处理
 
 > 在进行动作变更处理 **OnActionChange后** ，InputSystem会 **调用当前映射的动作输入处理类**
+>
+> **一套映射对应一个处理类**
 
 - 创建处理类
 
@@ -1343,9 +1411,10 @@ public void OnDrawGizmos()
   - 注册处理类：`mControls.映射名称.SetCallbacks(this);`
   - 激活/禁用：`mControls.映射名称.Enable() 或 Disable()`
 
-- 处理事件变量：`InputAction.CallbackContext context`
+- **处理事件变量**：`InputAction.CallbackContext context`
 
-  - 判断生命周期：`bool context.生命周期`
+  - 判断Action的生命周期：`bool context.生命周期`
+    <img src="Untiy.assets/image-20230313165819120.png" alt="image-20230313165819120" style="zoom:80%;" />
   
   - 读取输入
   
@@ -1379,28 +1448,23 @@ public void OnDrawGizmos()
             void Disable();
         }
     
-    
         // 输入动作的QFrame Event
         public struct DirInputEvt
         {
             public int x;
             public int y;
         }
-        public struct JumpInputEvt
-        {
-    
-        }
         public struct ShootInputEvt
         {
             public bool isShooting;
         }
     
-    
+        
+        // 映射的输入相应类
         public class PlayerInputSystem : AbstractSystem, IPlayerInputSystem, GameControl.IPlayMapActions
         {
             GameControl mControls = new GameControl();
             DirInputEvt moveDir;
-            JumpInputEvt jump;
             ShootInputEvt shoot;
     
             protected override void OnInit()
@@ -1409,22 +1473,23 @@ public void OnDrawGizmos()
                 mControls.PlayMap.SetCallbacks(this);
                 Enable();
             }
+            // 映射启动控制
             public void Enable()
             {
                 mControls.PlayMap.Enable();
             }
-    
             public void Disable()
             {
                 mControls.PlayMap.Disable();
             }
     
+            // 处理动作：Move
             public void OnMove(InputAction.CallbackContext context)
             {
                 // 构造Event并发送
                 if(context.performed)
                 {
-                    // Move的ActionType是Value
+                    // 读取输入：Move的ActionType是Value
                     Vector2 input = context.ReadValue<Vector2>();
                     moveDir.x = (int)input.x;
                     moveDir.y = (int)input.y;
@@ -1439,17 +1504,8 @@ public void OnDrawGizmos()
                 }
     
             }
-    
-            public void OnJump(InputAction.CallbackContext context)
-            {
-                
-                if(context.started)
-                {
-                    Debug.Log("新输入系统：跳跃");
-                    this.SendEvent(jump);
-                } 
-            }
-    
+    		
+            // 处理动作：Shoot
             public void OnShoot(InputAction.CallbackContext context)
             {
                 if(context.started)
@@ -1460,11 +1516,10 @@ public void OnDrawGizmos()
                 }
             }
     
-    
         }
     }
     ```
-
+    
   - 结果
     ![image-20230318101203166](Untiy.assets/image-20230318101203166.png)
 

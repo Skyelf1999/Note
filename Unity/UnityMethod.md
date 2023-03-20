@@ -264,6 +264,82 @@ private void MouseClick()
 
 ##### 前进方向
 
+
+
+### InputSystem
+
+##### 移动处理
+
+> 要考虑手柄的平滑取值
+
+```c#
+public void OnMove(InputAction.CallbackContext context)
+{
+    // 构造Event并发送
+    if(context.performed)
+    {
+        // Move的ActionType是Value
+        Vector2 input = context.ReadValue<Vector2>();
+        // 不同设备输入处理
+        switch(curDeviceId)
+        {
+            case MyInputDevice.Keyboard:
+                moveDir.x = input.x;
+                moveDir.y = input.y;
+                break;
+            case MyInputDevice.Gamepad:
+                moveDir.x = Math.Abs(input.x)>sensitive?input.x:0f;
+                moveDir.y = Math.Abs(input.y)>sensitive ? input.y : 0f;
+                break;
+        }
+        this.SendEvent(moveDir);
+        Debug.Log(input);
+    }
+    else if(context.canceled)
+    {
+        switch(curDeviceId)
+        {
+            /*  
+                键盘需要进行多方向键处理
+                    当同时按下多个方向键时，松开其中一个就会触发context.canceled
+                    但是此时可能别的方向键仍然被按压
+                    需要判断是否还有按下的按键
+                例如：松开A，若仍然按着D，则直接向右而不是停下
+            */
+            case MyInputDevice.Keyboard:
+                var keyboard = Keyboard.current;
+                switch(moveDir.x)
+                {
+                    case -1:
+                        moveDir.x = keyboard.dKey.wasPressedThisFrame || keyboard.rightArrowKey.wasPressedThisFrame ? 1 : 0;
+                        break;
+                    case 1:
+                        moveDir.x = keyboard.aKey.wasPressedThisFrame || keyboard.leftArrowKey.wasPressedThisFrame ? -1 : 0;
+                        break;
+                }
+                switch(moveDir.y)
+                {
+                    case -1:
+                        moveDir.y = keyboard.wKey.wasPressedThisFrame || keyboard.upArrowKey.wasPressedThisFrame ? 1 : 0;
+                        break;
+                    case 1:
+                        moveDir.y = keyboard.sKey.wasPressedThisFrame || keyboard.downArrowKey.wasPressedThisFrame ? -1 : 0;
+                        break;
+                }
+                break;
+            default:
+                moveDir.x = 0;
+                moveDir.y = 0;
+                break;
+        }
+        this.SendEvent(moveDir);
+    }
+
+}
+```
+
+
+
 ------
 
 
