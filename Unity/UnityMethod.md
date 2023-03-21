@@ -120,6 +120,127 @@ Rigidbody rb = other.gameObject.GetComponent<Rigidbody>();
 
 
 
+# 检测
+
+### 碰撞检测
+
+##### 使用刚体、碰撞体
+
+##### 射线检测
+
+> 缺点：不能从对象身上发射，否则会先碰到本对象
+
+- 射线命中信息：`RaycastHit2D hitInfo;`
+
+  - 碰撞对象Collider：`collider`
+  - 碰撞对象刚体：`rigidbody`
+
+- 射线检测：`RaycastHit2D Raycast(Vector2 origin, Vector2 direction, float distance);`
+
+- 使用示例
+
+  ```c#
+  // 通过射线检测判断玩家是否在地面上
+  void GroundCheckRay()
+  {
+      // 不能从玩家身上发射，否则会先碰撞到玩家
+      Debug.DrawRay(transform.position+new Vector3(0,-0.505f,0),new Vector2(0,-0.2f),Color.cyan);
+      hitInfo = Physics2D.Raycast(transform.position+new Vector3(0,-0.505f,0),new Vector2(0,-1),0.1f);
+      if(hitInfo)
+      {
+          // print(hitInfo.collider.name);
+          if(hitInfo.collider.tag=="Ground" && isJump)
+          {
+              // print("落地");
+              isJump = false;
+          }
+      }
+  }
+  ```
+
+##### Physics图层检测
+
+> 指定检测对象所在的Layer
+
+- 相关方法
+
+  - 获取图层：`LayerMask layerMask = LayerMask.GetMask(string layerName);`
+
+  - 盒形检测：`Physics.OverlapBox`
+
+    - 检测中心点：`Vector3 center`
+
+      > 通常与主体position相关
+
+    - Vector3 halfExtents
+
+    - Quaternion orientation
+
+    - 目标图层：`LayerMask layerMask`
+
+    - QueryTriggerInteraction queryTriggerInteraction
+
+  - `Physics.OverlapCapsule`
+
+  - `Physics.OverlapSphere`
+
+- 示例
+
+  - 子弹检测
+
+    ```c#
+    public class Bullet : MonoBehaviour
+    {
+        LayerMask layerMask;
+        
+        void Start()
+        {
+            // 指定检测哪些Layer
+            layerMask = LayerMask.GetMask("图层1","图层2");
+        }
+        
+        void FixedUpdate()
+        {
+            // 获取碰撞对象
+            var collider = Physics2D.OverlapBox(transform.position, transform.localScale, 0, layerMask);
+            if(collider)
+            {
+                // 碰撞处理
+            }
+        }
+    }
+    ```
+
+  - 地面检测
+
+    ```c#
+    LayerMask groundLM = LayerMask.GetMask("Ground");
+    
+    void GroundCheckLayer()
+    {
+    	if(Physics2D.OverlapBox(
+            transform.position+colliderHeight*0.5f*Vector3.down,
+            Vector3.one*0.02f,
+            0,groundLM)
+          )
+        {
+            if(isJump) print("落地");
+            isJump = false;
+        }
+    }
+    ```
+
+    
+
+
+------
+
+
+
+
+
+
+
 # 角色控制
 
 ### 键盘控制移动
@@ -260,10 +381,6 @@ private void MouseClick()
 
 ### 角色位移状态
 
-##### 是否在地面
-
-##### 前进方向
-
 
 
 ### InputSystem
@@ -339,84 +456,6 @@ public void OnMove(InputAction.CallbackContext context)
 ```
 
 
-
-------
-
-
-
-
-
-
-
-# 检测
-
-### 碰撞检测
-
-##### 使用刚体、碰撞体
-
-##### 射线检测
-
-> 缺点：不能从对象身上发射，否则会先碰到本对象
-
-```c#
-// 通过射线检测判断玩家是否在地面上
-void GroundCheckRay()
-{
-    // 不能从玩家身上发射，否则会先碰撞到玩家
-    Debug.DrawRay(transform.position+new Vector3(0,-0.505f,0),new Vector2(0,-0.2f),Color.cyan);
-    hitInfo = Physics2D.Raycast(transform.position+new Vector3(0,-0.505f,0),new Vector2(0,-1),0.1f);
-    if(hitInfo)
-    {
-        // print(hitInfo.collider.name);
-        if(hitInfo.collider.tag=="Ground" && isJump)
-        {
-            // print("落地");
-            isJump = false;
-        }
-    }
-}
-```
-
-##### Physics图层检测
-
-> 指定检测对象所在的Layer
-
-- 相关方法
-
-  - 获取图层：`LayerMask layerMask = LayerMask.GetMask(string layerName);`
-  - 盒形检测：`Physics.OverlapBox`
-    - 检测中心点：`Vector3 center`
-    - Vector3 halfExtents
-    - Quaternion orientation
-    - 目标图层：`LayerMask layerMask`
-    - QueryTriggerInteraction queryTriggerInteraction
-  - `Physics.OverlapCapsule`
-  - `Physics.OverlapSphere`
-
-- 示例：子弹检测
-
-  ```c#
-  public class Bullet : MonoBehaviour
-  {
-      LayerMask layerMask;
-      
-      void Start()
-      {
-          // 指定检测哪些Layer
-          layerMask = LayerMask.GetMask("图层1","图层2");
-      }
-      
-      void FixedUpdate()
-      {
-          // 获取碰撞对象
-          var collider = Physics2D.OverlapBox(transform.position, transform.localScale, 0, layerMask);
-          if(collider)
-          {
-              // 碰撞处理
-          }
-      }
-  }
-  ```
 
 ------
 

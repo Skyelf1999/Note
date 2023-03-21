@@ -554,7 +554,7 @@ public class FirstSpell : MonoBehaviour
   - **获取子对象**：`GameObject child = transform.GetChild(int index)`
   - 查找直接子对象：`GameObject child = transform.Find(string name)`
   
-    > 与GameObject.Find不同，只能查找直接子对象
+    > 与GameObject.Find不同，**只能查找直接子对象**
   
   - 删除所有子对象：`transform.DetachChildren()`
 
@@ -712,7 +712,7 @@ public class FirstSpell : MonoBehaviour
 >
 > 只有 **具有Rigidbody** 的对象会受到碰撞的影响（因为有刚体才能进行物理行为模拟）
 >
-> 不具备刚体的物体则只能作为静止的被碰撞物体，本身不发生运动
+> **不具备刚体** 的物体则 **只能作为静止的被碰撞物体** ，本身不发生运动
 
 ##### 组件属性
 
@@ -1336,7 +1336,7 @@ public void OnDrawGizmos()
 
 - Action变更
 
-  > 不特指某个Action
+  > 不特指某个Action，只要输入的Action变化了，都会触发监听方法
 
   - 系统监听：`Action<object, InputActionChange> onActionChange`
 
@@ -1402,6 +1402,8 @@ public void OnDrawGizmos()
 ##### **映射动作输入处理
 
 > 在进行动作变更处理 **OnActionChange后** ，InputSystem会 **调用当前映射的动作输入处理类**
+>
+> 相当于先判断Action是否变化，在针对输入的Action进行处理
 >
 > **一套映射对应一个处理类**
 
@@ -1524,33 +1526,6 @@ public void OnDrawGizmos()
     ![image-20230318101203166](Untiy.assets/image-20230318101203166.png)
 
 
-##### 设备变更
-
-- 处理事件：
-
-  - 变更后的输入设备
-
-  - 设备状态：`InputActionChange change`
-
-    ```c#
-    namespace UnityEngine.InputSystem
-    {
-        public enum InputActionChange
-        {
-            ActionEnabled = 0,
-            ActionDisabled = 1,
-            ActionMapEnabled = 2,
-            ActionMapDisabled = 3,
-            ActionStarted = 4,
-            ActionPerformed = 5,				// 执行输入操作
-            ActionCanceled = 6,
-            BoundControlsAboutToChange = 7,
-            BoundControlsChanged = 8
-        }
-    }
-    ```
-
-
 
 ### 文件IO
 
@@ -1608,7 +1583,7 @@ public void OnDrawGizmos()
 - 引入： `using UnityEngine.UI;`
 - 创建变量：`控件类型 控件名称`
 
-##### **位置
+##### **控件位置
 
 - 锚点 Anchors
 
@@ -1621,6 +1596,12 @@ public void OnDrawGizmos()
 - **位置**
 
   > 组件 **轴心** 相对 **锚点** 的位置
+
+
+
+### RectTransform
+
+- 
 
 
 
