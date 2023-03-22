@@ -480,6 +480,10 @@ public class FirstSpell : MonoBehaviour
   - float x
   - float y
   - float z
+  - 模长：`float magnitude`
+  - 单位向量：`Vector2 normalized `
+
+    > 借此可以实现伸缩
 
 - 赋值：`vec = new Vector3(x,y,z)`
 
@@ -1601,7 +1605,10 @@ public void OnDrawGizmos()
 
 ### RectTransform
 
-- 
+##### 基础属性
+
+- 矩形：`Rect rect`
+  - 宽度：`float width`
 
 
 

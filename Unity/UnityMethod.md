@@ -744,6 +744,10 @@ public struct ActiveDestinationEvt
 }
 ```
 
+- 发送Event：
+  - `this.SendEvent<Event结构体类型>();`
+  - `this.SendEvent<>(Event结构体对象);`
+
 
 
 ### ICommand
@@ -765,10 +769,12 @@ public class ActiveDestinationCmd : AbstractCommand
 }
 ```
 
-##### 常用方法
+##### 发送Command
 
-- 发送Event：`this.SendEvent<Event结构体类型>();`
-- 
+- 按类别：`this.SendCommand<Cmd类>();`
+
+  > 此方式发送的Cmd一般不具有变动参数
+- 按对象：`this.SendCommand(Cmd对象);`
 
 
 
