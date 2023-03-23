@@ -744,7 +744,14 @@ public struct ActiveDestinationEvt
 }
 ```
 
+##### 使用
+
+- 获得发送Event功能：`ICanSendEvent`
+
+  > 可以让Contoller实现此接口来获得发送Event的能力
+
 - 发送Event：
+
   - `this.SendEvent<Event结构体类型>();`
   - `this.SendEvent<>(Event结构体对象);`
 

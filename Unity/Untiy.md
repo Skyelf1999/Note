@@ -1615,6 +1615,8 @@ public void OnDrawGizmos()
 ### **UI控件触发事件
 
 > 引用：`UnityEngine.EventSystems`
+>
+> 脚本挂载到哪个UI对象上，就由哪个对象接收事件
 
 ##### 参数类型PointerEventData
 
