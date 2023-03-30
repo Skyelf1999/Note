@@ -275,7 +275,7 @@ public void MoveSmooth()
 
 ##### 刚体速度设置
 
-- 直接设置速度
+- 设置速度
 
   ```c#
   void MoveStandard()
@@ -380,6 +380,29 @@ private void MouseClick()
 
 
 ### 角色位移状态
+
+##### 跳跃
+
+```c#
+bool isJump = false;
+void PlayerJump()
+{
+    if(isJump)		// 防止连续跳跃
+    {
+        Debug.LogError("正在跳跃，无法再次跳跃");
+        return;
+    }
+    rb.velocity = new Vector2(rb.velocity.x, jumpVelocity);
+    StartCoroutine("setJump");
+}
+// 为防止跳跃起始时离地面过近导致地面检测判断为落地，在跳跃之后再设置为跳跃状态
+IEnumerator setJump()
+{
+    yield return new WaitForEndOfFrame();
+    isJump = true;
+    Debug.Log("正在跳跃");
+}
+```
 
 
 

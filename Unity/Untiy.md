@@ -1401,7 +1401,7 @@ public void OnDrawGizmos()
       ```
 
 
-  
+
 
 ##### **映射动作输入处理
 
@@ -1535,6 +1535,8 @@ public void OnDrawGizmos()
 
 
 
+### 控制台输出
+
 
 
 # UI组件
@@ -1616,7 +1618,7 @@ public void OnDrawGizmos()
 
 > 引用：`UnityEngine.EventSystems`
 >
-> 脚本挂载到哪个UI对象上，就由哪个对象接收事件
+> 脚本 **挂载到哪个UI对象上，就由哪个对象接收事件**
 
 ##### 参数类型PointerEventData
 
