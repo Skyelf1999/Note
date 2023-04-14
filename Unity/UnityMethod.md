@@ -245,6 +245,11 @@ Rigidbody rb = other.gameObject.GetComponent<Rigidbody>();
 
 ### 键盘控制移动
 
+##### 获取输入
+
+- 按键：`Input.GetKey(KeyCode.W)`
+- 轴输入：`Input.GetAxisRaw("Horizontal")`
+
 ##### 使用 transform
 
 ```c#
