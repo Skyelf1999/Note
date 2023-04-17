@@ -97,7 +97,7 @@
 
 > 按帧/时间执行
 >
-> 若涉及刚体等 **物理运算**，建议使用FixedUpdate
+> 若涉及刚体等 **物理运算**，建议使用FixedUpdate，但可以借助Update保存用户输入避免丢失输入
 
 ##### 4. LateUpdate()
 
@@ -656,6 +656,8 @@ public class FirstSpell : MonoBehaviour
 
 ##### 常见属性
 
+> 若想影响刚体属性，需要在FixedUpdate中
+
 ![image-20220911105611947](Untiy.assets/image-20220911105611947.png)
 
 - 质量 Mass
@@ -689,6 +691,7 @@ public class FirstSpell : MonoBehaviour
 
 - 创建：`public Rigidbody body;`
 - 受力运动：`body.AddForce(Vector3 dir,mod)`
+- 移动刚体：`body.MovePosition(Vector3 pos)`
 
 
 
@@ -1280,6 +1283,25 @@ public void OnDrawGizmos()
   > 设为1则对应轴坐标参与排序
 
   ![image-20230405144357689](Untiy.assets/image-20230405144357689.png)
+
+
+
+### 瓦片地图Collider
+
+##### 单片Collider
+
+- 为Tilemap对象添加 **Tilemap Collider**
+  ![image-20230415111837998](Untiy.assets/image-20230415111837998.png)
+- 设定瓦片资源是否使用Collider
+  ![image-20230415111930288](Untiy.assets/image-20230415111930288.png)
+
+##### 复合Collider
+
+> 单片Collider十分耗费性能，采用复合Collider可以将小块Collider自动拼接成大块
+
+- 添加组件：Composite Collider
+- 设置
+  ![image-20230415112100506](Untiy.assets/image-20230415112100506.png)
 
 
 
@@ -3131,6 +3153,14 @@ public class UIManager : MonoBehaviour
       ```
     
   
+
+##### 预制体覆盖属性
+
+> 如果对应用到场景中的预制体对象进行修改，则只会修改该对象
+>
+> 但可以通过覆盖来将改动应用到所有预制体对象
+
+![image-20230415104022220](Untiy.assets/image-20230415104022220.png)
 
 
 
