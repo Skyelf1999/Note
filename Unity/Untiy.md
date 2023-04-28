@@ -134,15 +134,19 @@
 
 ### 创建
 
-##### 1. 编译器设置
+##### 编译器设置
 
 <img src="Untiy.assets/image-20220314171723442.png" alt="image-20220314171723442" style="zoom: 80%;" />
 
-##### 2. 添加脚本组件
+##### 添加脚本组件
 
 ![image-20220314171822876](Untiy.assets/image-20220314171822876.png)
 
 ![image-20220314172400370](Untiy.assets/image-20220314172400370.png)
+
+##### 程序创建
+
+
 
 ##### 控制脚本
 
@@ -1377,7 +1381,7 @@ public void OnDrawGizmos()
 
   > 例如：
   >
-  > ​	角色的移动射击瞄准可以通过键鼠来操控，也可以通过手柄来操控，但一名玩家同时只能选择其中一种方案来操控角色，如果系统 **同时监听不同输入设备的输入信号**，会造成 **CPU资源的浪费**
+  > 角色的移动射击瞄准可以通过键鼠来操控，也可以通过手柄来操控，但一名玩家同时只能选择其中一种方案来操控角色，如果系统 **同时监听不同输入设备的输入信号**，会造成 **CPU资源的浪费**
 
   ![image-20230313172143263](Untiy.assets/image-20230313172143263.png)
 
@@ -1385,22 +1389,25 @@ public void OnDrawGizmos()
 
   > 一套输入控制方案
   >
-  > 例如：方向键在 [游戏中] 应控制角色移动，但在 [UI界面] 用于切换选项
+  > 例如：方向键在 [游戏中方案] 应控制角色移动，但在 [UI界面方案] 用于切换选项
 
 - 动作行为 Actions
 
   > 用于对同类型绑定进行 **分类**，例如 移动（WASD或方向键）、跳跃等
   >
-  > 管理多个Binding与Composite，关联多个Control，为开发者自定义回调函数提供监听的事件
+  > **管理多个Binding与Composite**，关联多个Control，为开发者自定义回调函数提供监听的事件
   >
   > 提供了 **5种事件**，开发者需要自定义回调函数
 
   - **动作生命周期**
 
     > 但按住两个相反方向按键时，默认返回Canceled
+    >
+    > 有些Action可能关联了组合绑定，当组合绑定中的任意一个输入取消时，都会进入canceled
+    >
     > <img src="Untiy.assets/image-20230313165819120.png" alt="image-20230313165819120" style="zoom:80%;" />
 
-  - Action Type
+  - **Action Type**
 
     > **按压值**：**处于[0,1]的float型** 模拟信号，用于感应按钮是否被按压，按压值 **达到按压阈值时**，按钮才能视为被按下
     >
@@ -1408,13 +1415,15 @@ public void OnDrawGizmos()
     >
     > **初始状态检查**：启用 Action时，Action绑定的Control可能已经具有非默认状态，系统依次检查所有被绑定到此Action的Control，并立即响应处于非默认状态下的控件。
 
-    <img src="Untiy.assets/image-20230313173539233.png" alt="image-20230313173539233"  />
+    <img src="Untiy.assets/image-20230313173539233.png" alt="image-20230313173539233" style="zoom: 100%;" />
 
-  - Control Type
+  - **Control Type**
 
     > 限定监听的输入类型
     >
     > 只有 **当ActionType不是Button时** 才可选择
+    >
+    > 当ActionType为Button时，只会监听选择的按键
     >
     > Vector2接收[-1.0, 1.0]方向
     
@@ -1422,7 +1431,7 @@ public void OnDrawGizmos()
 
 - **监听绑定**
 
-  > 输入系统将 **Action与Control之间的连接** 抽象为Binding
+  > 输入系统将 **游戏行为Action与玩家输入Control之间的映射** 抽象为Binding
   >
   > Binding包含一条指向Control的控件路径，多个Binding可以指向同一个Control，一个Action可包含多个Binding
   >
@@ -1442,11 +1451,11 @@ public void OnDrawGizmos()
 
     ![image-20230313174756133](Untiy.assets/image-20230313174756133.png)
 
-  - 组合类型
+  - **组合类型**
     <img src="Untiy.assets/image-20230313174958428.png" alt="image-20230313174958428" style="zoom: 80%;" />
     ![image-20230314111715730](Untiy.assets/image-20230314111715730.png)
 
-  - 模式
+  - **模式**
     ![image-20230313175246601](Untiy.assets/image-20230313175246601.png)
 
   - 交互策略 Interaction
@@ -1490,7 +1499,7 @@ public void OnDrawGizmos()
 
   > 不特指某个Action，只要输入的Action变化了，都会触发监听方法
 
-  - 系统监听：`Action<object, InputActionChange> onActionChange`
+  - 系统监听：`Action<object, InputActionChange> InputSystem.onActionChange`
 
     - 动作状态
 
@@ -1522,6 +1531,29 @@ public void OnDrawGizmos()
         // 设定当前设备
         SetCurDevice(device);
     }
+    
+    
+    // 设定当前设备
+    void SetCurDevice(InputDevice device)
+    {
+        if(device==null || device==curDevice) return;
+    
+        // 获取设备类型
+        Type type = null;
+        if(device is Keyboard) type = typeof(Keyboard);
+        else if(device is Gamepad) type = typeof(Gamepad);
+        else if(device is Pointer) type = typeof(Pointer);
+        else if(device is Joystick) type = typeof(Joystick);
+        // 处理
+        if(type==null || !deviceChangeActions.TryGetValue(type,out Action callback)) return;
+        else
+        {
+            Debug.Log("当前设备类型："+type);
+            curDevice = device;
+            callback?.Invoke();     // 调用设备类型对应的处理方法
+        }
+    
+    }
     ```
 
 - 设备变更
@@ -1549,8 +1581,6 @@ public void OnDrawGizmos()
       ```
 
 
-
-
 ##### **映射动作输入处理
 
 > 在进行动作变更处理 **OnActionChange后** ，InputSystem会 **调用当前映射的动作输入处理类**
@@ -1572,7 +1602,7 @@ public void OnDrawGizmos()
   
   - 读取输入
   
-    > 根据 **ActionType**
+    > 根据 **ActionType** ，调用不同的方法读取输入值
   
     - Value：`T v = context.ReadValue<T>()`
   
@@ -1580,101 +1610,318 @@ public void OnDrawGizmos()
   
     - Button：`bool isPressed = context.ReadValueAsButton()`
   
-- 示例
 
-  - 程序
+示例
 
-    ```c#
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using UnityEngine;
-    using QFramework;
-    using UnityEngine.InputSystem;
+- 设定
+    ![image-20230428174030582](Untiy.assets/image-20230428174030582.png)
     
-    namespace QFPlatformShooting
-    {
-        // 玩家输入系统
-        public interface IPlayerInputSystem : ISystem
-        {
-            void Enable();
-            void Disable();
-        }
+- 程序
+  
+    - 导出的配置类：`GameControl`
     
-        // 输入动作的QFrame Event
-        public struct DirInputEvt
-        {
-            public int x;
-            public int y;
-        }
-        public struct ShootInputEvt
-        {
-            public bool isShooting;
-        }
+    - 输入设备变更系统：`InputDeviceSystem`
     
+        ```c#
+        using System;
+        using System.Collections.Generic;
+        using System.Linq;
+        using System.Threading.Tasks;
+        using UnityEngine;
+        using QFramework;
+        using UnityEngine.InputSystem;
         
-        // 映射的输入相应类
-        public class PlayerInputSystem : AbstractSystem, IPlayerInputSystem, GameControl.IPlayMapActions
+        
+        
+        namespace QFPlatformShooting
         {
-            GameControl mControls = new GameControl();
-            DirInputEvt moveDir;
-            ShootInputEvt shoot;
-    
-            protected override void OnInit()
+            /*
+                输入设备变更System
+                    在 Action变更 和 设备变更 时都会进行设备检查
+            */
+            public interface IInputDeviceSystem : ISystem
             {
-                // 将当前类设定为目标映射的输入处理
-                mControls.PlayMap.SetCallbacks(this);
-                Enable();
+                void Enable();
+                void Disable();
+                void RegistDeviceChange<T>(Action act);
             }
-            // 映射启动控制
-            public void Enable()
+        
+        
+            public class InputDeviceSystem : AbstractSystem, IInputDeviceSystem
             {
-                mControls.PlayMap.Enable();
-            }
-            public void Disable()
-            {
-                mControls.PlayMap.Disable();
-            }
-    
-            // 处理动作：Move
-            public void OnMove(InputAction.CallbackContext context)
-            {
-                // 构造Event并发送
-                if(context.performed)
+                // 保存设备类型及对应的处理事件
+                Dictionary<Type,Action> deviceChangeActions;
+                InputDevice curDevice;
+        
+                protected override void OnInit()
                 {
-                    // 读取输入：Move的ActionType是Value
-                    Vector2 input = context.ReadValue<Vector2>();
-                    moveDir.x = (int)input.x;
-                    moveDir.y = (int)input.y;
-                    this.SendEvent(moveDir);
-                    Debug.Log(input);
+                    deviceChangeActions = new Dictionary<Type, Action>();
+                    // Enable();
                 }
-                else if(context.canceled)
+                public void Disable()
                 {
-                    moveDir.x = 0;
-                    moveDir.y = 0;
-                    this.SendEvent(moveDir);
+                    InputSystem.onActionChange -= DetectCurInputDevice;
+                    InputSystem.onDeviceChange -= OnDeviceChange;
+                    deviceChangeActions.Clear();
                 }
-    
-            }
-    		
-            // 处理动作：Shoot
-            public void OnShoot(InputAction.CallbackContext context)
-            {
-                if(context.started)
+                public void Enable()
                 {
-                    // Shoot的ActionType是Button
-                    shoot.isShooting = context.ReadValueAsButton();
-                    this.SendEvent(shoot);
+                    InputSystem.onActionChange += DetectCurInputDevice;
+                    InputSystem.onDeviceChange += OnDeviceChange;
                 }
+        
+                // 注册设备及对应的处理事件（字典保存）
+                public void RegistDeviceChange<T>(Action act)
+                {
+                    // 获取设备类型
+                    var type = typeof(T);
+                    if(deviceChangeActions.ContainsKey(type))
+                    {
+                        deviceChangeActions[type] += act;
+                    }
+                    else
+                    {
+                        deviceChangeActions.Add(type,act);
+                    }
+                }
+        
+        
+                // 当输入的Action变化时，检测当前输入设备
+                void DetectCurInputDevice(object ob, InputActionChange change)
+                {
+                    // 当前Action的状态，当玩家未进行操作时直接返回
+                    if(change!=InputActionChange.ActionPerformed) return;
+                    // Debug.Log("检测到输入Action变化");
+                    // 获取输入设备
+                    InputDevice device = (ob as InputAction).activeControl.device;
+                    SetCurDevice(device);
+                }
+                
+                // 设备变更处理
+                void OnDeviceChange(InputDevice device,InputDeviceChange state)
+                {
+                    switch(state)
+                    {
+                        case InputDeviceChange.Reconnected:
+                            Debug.Log("设备：重新连接");
+                            SetCurDevice(device);
+                            break;
+                        case InputDeviceChange.Disconnected:
+                            Debug.Log("设备：断开连接");
+        #if UNITY_STANDALONE || UNITY_EDITOR
+                            device = Keyboard.current;
+                            SetCurDevice(device);
+        #endif
+                            break;
+                        
+                    }
+                }
+        
+                // 设定当前设备
+                void SetCurDevice(InputDevice device)
+                {
+                    if(device==null || device==curDevice) return;
+        
+                    // 获取设备类型
+                    Type type = null;
+                    if(device is Keyboard) type = typeof(Keyboard);
+                    else if(device is Gamepad) type = typeof(Gamepad);
+                    else if(device is Pointer) type = typeof(Pointer);
+                    else if(device is Joystick) type = typeof(Joystick);
+                    // 处理
+                    if(type==null || !deviceChangeActions.TryGetValue(type,out Action callback)) return;
+                    else
+                    {
+                        Debug.Log("当前设备类型："+type);
+                        curDevice = device;
+                        callback?.Invoke();     // 调用设备类型对应的处理方法
+                    }
+        
+                }
+        
+                
             }
-    
+        
         }
-    }
-    ```
+        ```
     
-  - 结果
+    - 输入处理：`输入`
+    
+        ```C#
+        using System;
+        using System.Collections.Generic;
+        using System.Linq;
+        using System.Threading.Tasks;
+        using UnityEngine;
+        using QFramework;
+        using UnityEngine.InputSystem;
+        
+        namespace QFPlatformShooting
+        {
+            /*
+                玩家输入系统（使用InputSystem）
+            */ 
+            public interface IPlayerInputSystem : ISystem
+            {
+                void Enable(bool choice);
+                void Disable();
+            }
+        
+        
+            // 设备类型枚举
+            public enum MyInputDevice
+            {
+                Keyboard,Gamepad,Pointer
+            }
+        
+        
+            public class PlayerInputSystem : AbstractSystem, IPlayerInputSystem, GameControl.IPlayMapActions
+            {
+                GameControl mControls = new GameControl();
+                // Event变量
+                DirInputEvt moveDir;
+                JumpInputEvt jump;
+                ShootInputEvt shoot;
+                InputDeviceSystem deviceSystem;         // 设备系统
+                MyInputDevice curDeviceId;              // 保存当前设备类型id
+                float sensitive;                        // 手柄摇杆阈值
+        
+        
+                protected override void OnInit()
+                {
+                    sensitive = 0.1f;
+        
+                    // 将当前类设定为输入处理
+                    mControls.PlayMap.SetCallbacks(this);
+                    // Enable();
+        
+                    // 在设备变更系统中注册设备类型对应的变更处理
+                    deviceSystem = this.GetSystem<InputDeviceSystem>();
+                    deviceSystem.RegistDeviceChange<Keyboard>(() => { curDeviceId = MyInputDevice.Keyboard;});
+                    deviceSystem.RegistDeviceChange<Gamepad>(() => { curDeviceId = MyInputDevice.Gamepad;});
+                    deviceSystem.RegistDeviceChange<Pointer>(() => { curDeviceId = MyInputDevice.Pointer;});
+                }
+                public void Enable(bool isEnable)
+                {
+                    if(isEnable)
+                    {
+                        mControls.PlayMap.Enable();
+                        deviceSystem.Enable();
+                    }
+                    else
+                    {
+                        Disable();
+                    }
+                }
+        
+                public void Disable()
+                {
+                    mControls.PlayMap.Disable();
+                    deviceSystem.Disable();
+                }
+        
+                // Action处理：移动（ActionType = Value , ControlType = Vector2）
+                public void OnMove(InputAction.CallbackContext context)
+                {
+                    // 构造Event并发送
+                    if(context.performed)
+                    {
+                        // Debug.Log("Action：移动");
+                        // Move的ActionType是Value
+                        Vector2 input = context.ReadValue<Vector2>();
+                        // 不同设备输入处理
+                        switch(curDeviceId)
+                        {
+                            case MyInputDevice.Keyboard:
+                                moveDir.x = input.x;
+                                moveDir.y = input.y;
+                                break;
+                            case MyInputDevice.Gamepad:
+                                moveDir.x = Math.Abs(input.x)>sensitive? input.x : 0f;
+                                moveDir.y = Math.Abs(input.y)>sensitive ? input.y : 0f;
+                                break;
+                        }
+                        this.SendEvent(moveDir);
+                        Debug.Log(input);
+                    }
+                    else if(context.canceled)
+                    {
+                        switch(curDeviceId)
+                        {
+                            /*  
+                                键盘需要进行多方向键处理
+                                    当同时按下多个方向键时，松开其中一个就会触发context.canceled
+                                    但是此时可能别的方向键仍然被按压
+                                    需要判断是否还有按下的按键
+                                例如：松开A，若仍然按着D，则直接向右而不是停下
+                            */
+                            case MyInputDevice.Keyboard:
+                                var keyboard = Keyboard.current;
+                                switch(moveDir.x)
+                                {
+                                    case -1:
+                                        moveDir.x = keyboard.dKey.wasPressedThisFrame || keyboard.rightArrowKey.wasPressedThisFrame ? 1 : 0;
+                                        break;
+                                    case 1:
+                                        moveDir.x = keyboard.aKey.wasPressedThisFrame || keyboard.leftArrowKey.wasPressedThisFrame ? -1 : 0;
+                                        break;
+                                }
+                                switch(moveDir.y)
+                                {
+                                    case -1:
+                                        moveDir.y = keyboard.wKey.wasPressedThisFrame || keyboard.upArrowKey.wasPressedThisFrame ? 1 : 0;
+                                        break;
+                                    case 1:
+                                        moveDir.y = keyboard.sKey.wasPressedThisFrame || keyboard.downArrowKey.wasPressedThisFrame ? -1 : 0;
+                                        break;
+                                }
+                                break;
+                            default:
+                                moveDir.x = 0;
+                                moveDir.y = 0;
+                                break;
+                        }
+                        this.SendEvent(moveDir);
+                    }
+        
+                }
+        
+                // Action处理：跳跃（ActionType = Button）
+                public void OnJump(InputAction.CallbackContext context)
+                {
+                    
+                    if(context.started)
+                    {
+                        // Debug.Log("Action：跳跃");
+                        this.SendEvent(jump);
+                    } 
+                }
+        
+                // Action处理：射击（ActionType = Button）
+                public void OnShoot(InputAction.CallbackContext context)
+                {
+                    
+                    if(context.started)
+                    {   
+                        // Debug.Log("Action：射击");
+                        shoot.isShooting = context.ReadValueAsButton();
+                        this.SendEvent(shoot);
+                        
+                    }
+                    // else if(context.canceled)
+                    // {
+                    //     Debug.Log("停止射击");
+                    //     shoot.isShooting = context.ReadValueAsButton();
+                    //     this.SendEvent(shoot);
+                    // }
+                }
+        
+        
+            }
+        }
+        ```
+    
+- 结果
     ![image-20230318101203166](Untiy.assets/image-20230318101203166.png)
 
 

@@ -511,9 +511,17 @@ public void OnMove(InputAction.CallbackContext context)
 
 # 自定义框架
 
-### 静态管理模型
+### 工具类 PublicUtil
 
-### 动态管理执行者
+
+
+### 动态系统 Public System
+
+
+
+### 静态管理模型 Public Manager
+
+### 
 
 
 
