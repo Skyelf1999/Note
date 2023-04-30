@@ -511,17 +511,1563 @@ public void OnMove(InputAction.CallbackContext context)
 
 # 自定义框架
 
-### 工具类 PublicUtil
+> `namespace ProjectUtil`
 
+![image-20230430114342213](UnityMethod.assets/image-20230430114342213.png)
 
+![个人框架-导出](UnityMethod.assets/个人框架-导出.png)
 
 ### 动态系统 Public System
+
+##### 基本系统 BaseSystem
+
+```c#
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+using QFPlatformShooting;
+
+
+namespace ProjectUtil
+{
+    /*
+        项目基础系统
+            通常为 [单例] ，因此各个System一般没有继承的情况
+            有些功能不针对某特定对象，但是又需要MonoBehaviour的特性（例如启动协程、每帧更新）
+            因此可以创建System游戏对象来执行这些程序
+            在某些框架下（例如QFramework），不必创建对应的游戏对象即可运行
+            
+        BaseSystem为基本管理对象的脚本
+        可将各种子System挂载到此模块的GameObject下，防止场景切换导致销毁
+        需要Update的Manager可以将其更新方法注册到此脚本中的 Updates 上
+
+        注意：需要调整执行顺序 Execution Order
+    */
+    
+    public class BaseSystem : MonoBehaviour
+    {
+        public static BaseSystem instance;
+        // public static BaseSystem Instance
+        // {
+        //     get
+        //     {
+        //         if(instance==null)
+        //         {
+        //             // 如果没初始化过，根据脚本名称创建游戏对象
+        //             var o = new GameObject(typeof(BaseSystem).Name);
+        //             instance = o.AddComponent<BaseSystem>();
+        //             GameObject.DontDestroyOnLoad(o);
+        //         }
+        //         return instance;
+        //     }
+        // }
+        
+        public Action Updates;              // 需要执行的Update方法（常用于更新System的状态）
+        public MusicManager musicManager;
+
+        private void Awake() {
+            Debug.Log("BaseSystem: Awake");
+            if(!instance)
+            {
+                instance = this;
+                GameObject.DontDestroyOnLoad(gameObject);
+            }
+            else{
+                Destroy(gameObject);
+                return;
+            }
+            gameObject.name = "BaseSystem";
+
+            InitSystem<ResourceLoadSystem>();
+            InitSystem<ResourceSystem>();
+        }
+
+        // 初始化目标子系统
+        public void InitSystem<T>() where T : MonoBehaviour
+        {
+            string systemName = typeof(T).Name;
+            if(GameObject.Find(systemName)) return;
+            GameObject system = new GameObject(typeof(T).Name);
+            system.transform.SetParent(transform);
+            system.AddComponent<T>();
+        }
+
+
+        void Start() {
+            Debug.Log("BaseSystem: Start");
+            // musicManager = new MusicManager(gameObject,null,null);
+            // musicManager.PlayBgm("英雄の証");
+            // Updates += musicManager.Update;
+
+        }
+
+
+        void Update()
+        {
+            transform.position = Camera.main.transform.position;
+            Updates?.Invoke();
+        }
+
+    }
+}
+```
+
+##### 资源加载系统 ResourceLoadSystem
+
+```c#
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using UnityEngine;
+using QFramework;
+using QFPlatformShooting;
+
+namespace ProjectUtil
+{
+    /*
+        资源加载System
+            由于非MonoBehaviour无法启动协程，因此异步加载必须要由此对象实现
+            只保存静态、动态加载方法，不负责保存家加载结果
+            使用时，请传入资源在 Resources/ 下的完整路径
+                例如：Prefab/Bullet
+
+    */
+    public interface IResourceLoadSystem
+    {
+        // 静态加载
+        public T SyncLoad<T>(string name) where T :UnityEngine.Object;
+        // 动态加载（传入回调函数作为请求的回调函数）
+        public void AsyncLoadCb<T>(string name,Action<AsyncOperation> cb) where T :UnityEngine.Object;
+
+        // 动态加载（协程）
+        // 必须传入接收加载结果的变量，可以选择性传入回调函数来处理加载结果
+        public void AsyncLoadCor<T>(string name,ref T result,Action<T> cb=null) where T :UnityEngine.Object;
+
+    }
+
+
+    public class ResourceLoadSystem : MonoBehaviour , IResourceLoadSystem
+    {
+        public static ResourceLoadSystem instance;
+        UnityEngine.Object result;
+
+
+        private void Awake() {
+            Debug.Log("ResourceLoadSystem: Awake");
+            instance = this;
+        }
+
+
+        // 静态加载
+        public T SyncLoad<T>(string name) where T :UnityEngine.Object
+        {
+            Debug.Log("静态加载 目标："+name);
+            T ret = Resources.Load<T>(name);
+            return ret;
+        }
+
+
+        // 动态加载（回调函数）
+        public void AsyncLoadCb<T>(string name,Action<AsyncOperation> cb) where T :UnityEngine.Object
+        {
+            Debug.Log("动态加载(回调) 目标："+name);
+            ResourceRequest request = Resources.LoadAsync<T>(name);
+            request.completed += cb;
+        }
+
+
+        // 动态加载（协程）
+        // 必须传入接收加载结果的变量，可以选择性传入回调函数来处理加载结果
+        public void AsyncLoadCor<T>(string name,ref T result,Action<T> cb=null) where T :UnityEngine.Object
+        {
+            Debug.Log("动态加载(协程) 目标："+name);
+            StartCoroutine(Load<T>(name,result,cb));
+        }
+        IEnumerator Load<T>(string name,T result,Action<T> cb=null) where T :UnityEngine.Object
+        {
+            // 创建请求
+            ResourceRequest request = Resources.LoadAsync<UnityEngine.Object>(name);
+            yield return request;
+            if(request.isDone && request.asset!=null)
+            {
+                result = request.asset as T;
+                Debug.Log("加载成功");
+            }
+            else Debug.Log("加载失败");
+            // 调用回调处理加载结果
+            cb?.Invoke(result);
+        }
+
+    }
+}
+```
+
+##### 资源管理系统 ResourceSystem
+
+```c#
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using UnityEngine;
+
+
+namespace ProjectUtil
+{
+    /*
+        资源系统
+            保存当前项目使用的通用资源管理类的系统
+            通过不同类型的ResourceManager，存储本项目所需的所有资源
+            例如：图片、音乐、预制体等
+    */
+    public interface IResourceSystem
+    {
+        public void InitResourceManager();
+    }
+
+    public class ResourceSystem : MonoBehaviour , IResourceSystem
+    {
+        public static ResourceSystem instance;
+        // public static ResourceSystem Instance
+        // {
+        //     get {
+        //         if(instance==null)
+        //         {
+        //             // 如果没初始化过，根据脚本名称创建游戏对象
+        //             string name = typeof(ResourceSystem).Name;
+        //             var o = GameObject.Find(name);
+        //             if(o==null)
+        //             {
+        //                 new GameObject(name);
+        //                 o.transform.parent = BaseSystem.instance.gameObject.transform;
+        //                 instance = o.AddComponent<ResourceSystem>();
+        //             }
+        //             else
+        //                 instance = o.GetComponent<ResourceSystem>(); 
+        //         }
+        //         return instance;
+        //     }
+        // }
+
+        // 本项目所使用的资源类型与对应的Manager
+        public ResourceManager<Sprite> spriteManager;
+        public ResourceManager<AudioClip> musicManager;
+        public ResourceManager<GameObject> prefabManager;
+
+
+        private void Awake() {
+            instance = this;
+            InitResourceManager();
+            Debug.Log("ResourceSystem: Awake");
+        }
+
+
+        public void InitResourceManager()
+        {
+            spriteManager = new ResourceManager<Sprite>(null);
+            musicManager = new ResourceManager<AudioClip>(null);
+            prefabManager = new ResourceManager<GameObject>(null);
+        }
+    }
+
+}
+```
+
+##### 测试系统 TestSystem
+
+```c#
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+using QFPlatformShooting;
+
+namespace ProjectUtil
+{
+    /*
+        测试管理
+            创建测试Manager对象并测试相关方法
+    */
+
+    public class TestSystem : MonoBehaviour
+    {
+        public static TestSystem instance;
+
+        GameObject testObject;
+        Component testComponent;
+
+        void Awake() {
+            Debug.Log("TestManager: Awake");
+            instance = this;
+        }
+
+        void Start() {
+            Debug.Log("TestManager: Start");
+            // GameObject ob = new GameObject("dsh");
+            // print(ob.name);
+            // ChangeObjectName(ob,"htm");
+            // print(ob.name);
+
+            // TestRecycle();
+
+            // CreateTestObject();
+        }
+
+        void Update() {
+            
+        }
+
+        
+        // 更改传入对象的名称
+        void ChangeObjectName(GameObject ob,string name) 
+        {
+            var other = ob;
+            other.name = "htm";
+        }
+
+        // 测试回收与引用类型的特性
+        void TestRecycle()
+        {
+            TestManager<GameObject> test = new TestManager<GameObject>(gameObject);
+            test.printList();
+            for(int i=test.objectList.Count-1;i>-1;i--)
+            {
+                GameObject ob = test.objectList[i];
+                if(ob.name=="zdd") ob.name="张大地";
+                else if(ob.name=="cwf") test.Remove(ob);
+            }
+                
+            test.printList();
+        }
+
+
+        // 测试：脚本控制为别的游戏对象添加子对象，并在之后销毁
+        public void CreateTestObject()
+        {
+            GameObject parent = GameObject.Find("Player");
+            testObject = new GameObject("testObject");
+            testObject.transform.parent = parent.transform;
+            testObject.AddComponent<Rigidbody2D>();
+            for(int i=0;i<3;i++) new GameObject("sameNameObject").transform.parent = parent.transform;
+        }
+        public void DestroyTestObject()
+        {
+            Debug.Log("摧毁测试对象");
+            // if(testObject) Destroy(testObject);
+            testObject.transform.SetParent(null);
+            Destroy(GameObject.Find("sameNameObject"));
+        }
+
+        
+    }
+}
+```
+
+##### 计时系统 TimerSystem
+
+```c#
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+
+
+namespace ProjectUtil
+{
+    /*
+        计时器系统
+            持有一个计时器Manager用于存储计时器
+            自动更新计时器
+    */
+
+    public class TimerSystem : MonoBehaviour
+    {
+        public static TimerSystem instance;
+        public TimerManager timerManager;
+        
+        private void Awake() {
+            instance = this;
+            timerManager = new TimerManager();
+        }
+
+
+        private void Update() {
+            timerManager.UpdateAllTimer();
+        }
+    }
+
+}
+```
+
+
+
+### 工具类 PublicUtil
+
+##### 渐变数据工具 FadeUtil
+
+```c#
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using UnityEngine;
+
+
+namespace ProjectUtil
+{
+    /*
+        渐变工具
+            执行Update时，会使渐变值在指定范围内渐变
+    */
+    public enum FadeSate
+    {
+        Stop,       // 停止
+        In,         // 渐入（渐变变量增加）
+        Out         // 渐出
+    }
+
+    public interface IFadeUtil
+    {
+        // 设置渐变范围
+        public void SetRange(float min,float max);
+        // 设置渐变状态（淡入/淡出）
+        public void SetState(FadeSate state,bool init=false,Action cb=null);
+        // 更新渐变值（根据当前渐变状态）
+        public float Update();
+    }
+    
+
+    public class FadeUtil
+    {
+        float curValue;                         // 当前值
+        public float CurValue => curValue;
+        float step;                             // 渐变步长
+        public float Step
+        {
+            get {return step;}
+            set {step=value;}
+        }
+        float min;                              // 最小值
+        public float Min
+        {
+            get {return min;}
+            set {min=value;}
+        }
+        float max;                              // 最大值
+        public float Max
+        {
+            get {return max;}
+            set {max=value;}
+        }
+        FadeSate state;                         // 当前工作状态
+        public FadeSate State => state;
+        Action callBack;                        // 结束回调
+
+        public FadeUtil(float min,float max,float step=0.1f)
+        {
+            this.min = min;
+            this.max = max;
+            this.step = step;
+            state = FadeSate.Stop;
+            Debug.Log("FadeUtil构造完毕");
+        }
+
+        // 设置渐变范围（最大最小值）
+        public void SetRange(float min,float max)
+        {
+            this.min = min;
+            this.max = max;
+        }
+
+        // 设置渐变状态（可以选择是否重置当前值）
+        public void SetState(FadeSate state,bool init=false,Action cb=null)
+        {
+            Console.WriteLine(state);
+            this.state = state;
+            if(cb!=null) callBack = cb;
+            switch(state)
+            {
+                case FadeSate.Stop:
+                    break;
+                case FadeSate.In:
+                    if(init) curValue = min;
+                    break;
+                case FadeSate.Out:
+                    if(init) curValue = max;
+                    break;
+            }
+        }
+
+        // 更新当前渐变值
+        public float Update()
+        {
+            if(state==FadeSate.Stop) return curValue;
+            switch(state)
+            {
+                case FadeSate.In:
+                    if(curValue<max)
+                    {
+                        Debug.Log(string.Format("渐入，{0} -> {1}",curValue,max));
+                        curValue = Mathf.MoveTowards(curValue,max,Time.deltaTime);
+                    }
+                    else
+                    {
+                        Debug.Log("渐入结束");
+                        curValue = max;
+                        callBack?.Invoke();
+                        SetState(FadeSate.Stop);
+                    }
+                    break;
+                case FadeSate.Out:
+                    if(curValue>min)
+                    {
+                        Debug.Log(string.Format("渐入，{0} -> {1}",curValue,min));
+                        curValue = Mathf.MoveTowards(curValue,min,step);
+                    }
+                    else
+                    {
+                        Debug.Log("渐出结束");
+                        curValue = min;
+                        callBack?.Invoke();
+                        SetState(FadeSate.Stop);
+                    }
+                    break;
+            }
+            return curValue;
+        }
+
+
+    }
+}
+```
+
+##### 计时器工具 TimerUtil
+
+```c#
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using UnityEngine;
+
+
+namespace ProjectUtil
+{
+    /*
+        计时器工具类
+            
+    */
+    public interface ITimerUtil
+    {
+        public void Start(float delayTime, Action<TimerUtil> onFinished, bool isLoop);
+        public bool IsFinished {get;}
+        public void UpdateTimer();
+        public void Stop();
+    }
+
+
+    public class TimerUtil : ITimerUtil
+    {
+        float finishTime;               // 结束时间
+        float delayTime;                // 计时时间
+        bool isFinished;                // 是否计时结束
+        public bool IsFinished
+        {
+            get {return isFinished;}
+        }
+        public Action<TimerUtil> onFinished;              // 结束回调
+        bool isLoop;                    // 是否是循环
+
+
+        // 开始
+        public void Start(float delayTime, Action<TimerUtil> onFinished, bool isLoop)
+        {
+            this.delayTime = delayTime;
+            finishTime = Time.time+delayTime;
+            this.onFinished = onFinished;
+            this.isLoop = isLoop;
+            isFinished = false;
+        }
+
+        public void Stop()
+        {
+            isFinished = true;
+        }
+
+        public void UpdateTimer()
+        {
+            // Time.time会自动增长，其实这里的Update只需判断是否到时间
+            if(isFinished) return;
+            if(Time.time<finishTime) return;
+            else    // 时间到，判断是否循环
+            {
+                onFinished?.Invoke(this);
+                if(isLoop) finishTime += delayTime;
+                else
+                {
+                    onFinished = null;
+                    Stop();
+                } 
+            }
+        }
+    
+    }
+}
+```
+
+##### 单例 SingleMono
+
+> 有Bug
+
+```c#
+ using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using UnityEngine;
+
+
+namespace ProjectUtil
+{
+    /*
+        单例类模板
+            部分游戏对象可能需要在整个过程中都保持单例状态
+            将类名称通过泛型传递
+        
+        例如：
+            定义一个用于执行System的Update的工具类
+            public class SystemObjectCtrl : SingleMono<SystemObjectCtrl> , IController
+    */
+    public interface ISingleMono<T> where T:MonoBehaviour
+    {
+        public static T Instance {get;}
+    }
+    
+
+    public abstract class SingleMono<T> : MonoBehaviour where T:MonoBehaviour
+    {
+        protected static T instance;
+        public static T Instance
+        {
+            get 
+            {
+                if(instance==null)
+                {
+                    // 如果没初始化过，根据脚本名称创建游戏对象
+                    var o = new GameObject(typeof(T).Name);
+                    instance = o.AddComponent<T>();
+                    GameObject.DontDestroyOnLoad(o);
+                }
+                return instance;
+            }
+        }
+
+    }
+
+}
+```
 
 
 
 ### 静态管理模型 Public Manager
 
-### 
+##### 管理类模板 Manager
+
+```c#
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using UnityEngine;
+
+
+namespace ProjectUtil
+{
+    /*
+        通用Manager基类
+            Manager相当于与拥有特定功能的工具类，一般用于 [存储各种对象] 
+            不直接控制游戏对象，即不直接作为游戏脚本挂载，因此不继承Monobehaviour
+            但是部分功能必须依赖Monobehaviour的特性
+            因此可能需要在对应的System中创建Manager对象来使用预定义的功能
+            有些系统也在特定情况下也需要对应的System执行操作
+            使用时，请先 [创建Manager对象]
+
+        注：
+            由于一般被System使用，而System有可能不在切换场景时摧毁
+            因此Manager最好提供Clear方法
+            
+        例如：
+            MusicSystem 创建 BehaviourManager 来管理AudioSource组件
+                        创建 ResourceManager 来管理需要播放的音乐资源
+            资源管理ResourceManager 需要 ResourceLoadSystem 来执行加载资源的具体操作
+    */
+
+    public abstract class Manager<T>
+    {
+        protected string[] relativeSystems;             // 本Manager工作所需要的System支持
+        protected GameObject userObject;                // 使用本Manager的游戏对象
+
+        public Manager(GameObject gameObject)
+        {
+            this.userObject = gameObject;
+            initRelativeSystems();
+            CheckSystem();
+        }
+
+        protected abstract void initRelativeSystems();
+
+        // 检查是否缺少所需的System
+        protected bool CheckSystem()
+        {
+            if(relativeSystems==null) return true;
+            // 记录缺少的System
+            List<string> error = new List<string>();
+            for(int i=0;i<relativeSystems.Length;i++)
+                if(GameObject.Find(relativeSystems[i])==null) error.Add(relativeSystems[i]);
+
+            if(error.Count>0)
+            {
+                string str= string.Join(",", (string[])error.ToArray());
+                Debug.Log("缺少System："+str);
+                return false;
+            }
+            return true;
+        }
+
+        public abstract void Clear();
+    }
+}
+```
+
+##### 资源管理类 ResourceManager
+
+```c#
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using UnityEngine;
+using QFramework;
+using QFPlatformShooting;
+
+namespace ProjectUtil
+{
+    /*
+        资源管理系统
+            负责用字典 [存储] 项目加载的资源，具体的 [加载] 由 [ResourceLoadManager] 实现
+            支持：Sprite、AudioClip等
+            存储结构：[资源名称]--[资源]        （资源名称都是Resources/下的完整路径，以避免同名文件）
+            不存在的资源会自动加载
+            可以跟存储对象的类型创建不同的存储对象
+
+        注：
+            只负责存储未使用的资源，正在使用的资源请在使用处管理
+            传入的目标资源名称需要是 Resources/ 下的完整路径
+
+        示例：
+            管理加载的各种图片：
+                ResourceManageSystem<Sprite> spriteManager = new ResourceManageSystem(gameObject);
+            管理加载的音乐资源：
+                clipManager = new ResourceManageSystem<AudioClip>(gameObject);
+    */
+    public interface IResourceManager<T> where T :UnityEngine.Object
+    {
+        // 获取一个对应类型的资源
+        public T Get(string name);
+        // 获取一个对应类型的资源（用参数直接接收结果）
+        public void Get(string name,out T ret);
+        // 获取一个对应类型的资源（用回调函数处理）
+        public void Get(string name,Action<T> callBack);
+    }
+
+
+    public class ResourceManager<T> : Manager<T>,IResourceManager<T> where T :UnityEngine.Object 
+    {
+
+        // 存储加载过的资源
+        protected Dictionary<string,T> resource;
+        // 默认资源路径（实际路径为 "Resources/" + dir + name
+        string defaultDir;  
+        public string DefaultDir
+        {
+            get {return defaultDir;}
+            set {defaultDir=value;}
+        }
+
+
+        public ResourceManager(GameObject root) : base(root)
+        {
+            resource = new Dictionary<string,T>();
+        }
+        protected override void initRelativeSystems()
+        {
+            relativeSystems = new string[]{"ResourceLoadSystem"};
+        }
+
+
+        // 清空当前存储的资源
+        public override void Clear()
+        {
+            resource.Clear();
+        }
+
+
+        public T Get(string name)
+        {
+            T ret;
+            if(resource.TryGetValue(name,out ret)) return ret;
+            ret = ResourceLoadSystem.instance.SyncLoad<T>(name);
+            resource.Add(name,ret);
+            return ret;
+        }
+
+
+        // 取出对象（引用型加载结果/回调函数）
+        public void Get(string name,out T ret) 
+        {
+            if(resource.TryGetValue(name,out ret)) return;
+
+            ResourceLoadSystem.instance.AsyncLoadCor<T>(name,ref ret,ob=>{
+                resource.Add(name,ob);
+            });
+        }
+
+
+        public void Get(string name,Action<T> callBack) 
+        {
+            T ret;
+            // 若当前资源库中 有目标对象，取出、执行回调，返回
+            if(resource.TryGetValue(name,out ret))
+            {
+                callBack(ret);
+                return;
+            }
+
+            // 当前库中没有目标资源，加载目标资源
+            Debug.Log("当前资源库中不存在资源："+name+"，正在加载");
+            callBack += ob=>{
+                resource.TryAdd(name,ob);
+            };
+            ResourceLoadSystem.instance.AsyncLoadCor<T>(name,ref ret,callBack);
+        }
+
+    }
+}
+```
+
+##### 预制体管理类 RepPrefabManager
+
+```c#
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using UnityEngine;
+
+
+namespace ProjectUtil
+{
+    /*
+        动态游戏对象管理 Repetitive Prefab Object Manager
+            专门负责管理游戏中需要重复创建且大量出现的游戏对象（例如子弹）
+            这些游戏对象通常根据有限的Prefab资源创建
+            支持 [同时管理多个Prefab和其复制体]
+        
+        注：
+            请传入完整路径，[支持] 对 [不同路径下的同名] Prefab的管理
+            因为 prefabDir 中保存了同名Prefab的所有可能路径
+    */
+
+    public interface IRepPrefabObjManager
+    {
+        // 添加使用的预制体名称与其对应的路径
+        public void AddPrefab(string dir, string name);
+        // 根据名称获取一个预制体（请传入完整路径）
+        public GameObject Get(string dir, string name,Transform parent=null);
+        // 回收预制体(因为预制体本身就可以挂载脚本，因此不提供自动回收方法)
+        public void Recycle(GameObject ob,Action<GameObject> callback=null);
+        // 同时设置所有已激活的复制对象
+        public void SetAllActiveObject(string dir, string name,Action<GameObject> setCb);
+
+    }
+
+
+    public class RepPrefabObjManager : Manager<GameObject>, IRepPrefabObjManager
+    {
+        // 复制体挂载的目标父对象
+        GameObject parentTarget;
+        public GameObject ParentTarget
+        {
+            get {return parentTarget;}
+            set {parentTarget = value;}
+        }
+        // 保存Prefab名称、路径信息和Prefab资源
+        ResourceManager<GameObject> prefabs;                    // 加载的各个路径与对应的Prefab资源
+        Dictionary<string,List<string>> prefabDir;              // 不同名称Prefab的路径                    key是Prefab名称，value是该Prefab的不同路径
+        // 保存创建的复制体（名称都是预制体的路径+名称）
+        Dictionary<string,List<GameObject>> obActived;          // 各个Prefab与其已激活的各的复制体         key是Prefab路径+名称
+        Dictionary<string,Queue<GameObject>> obUnactived;       // 各个Prefab与其未激活的各的复制体         key是Prefab路径+名称
+
+
+        public RepPrefabObjManager(GameObject gameObject) : base(gameObject)
+        {
+            parentTarget = gameObject;
+            prefabs = ResourceSystem.instance.prefabManager;
+            prefabDir = new Dictionary<string, List<string>>();
+            obActived = new Dictionary<string, List<GameObject>>();
+            obUnactived = new Dictionary<string, Queue<GameObject>>();
+        }
+        protected override void initRelativeSystems()
+        {
+            relativeSystems = new string[]{"ResourceLoadSystem"};
+        }
+
+
+        // 添加可能需要的Prefab
+        public void AddPrefab(string dir, string name)
+        {
+            if(!prefabDir.ContainsKey(name))     // 如果Prefab不存在，加载、保存路径信息
+            {
+                prefabDir.Add(name,new List<string>(new string[]{dir}));
+                prefabs.Get(dir+name,ob=>{
+                    Debug.Log("已添加Prefab："+dir+name);
+                });
+                
+            }
+            else                                // 目标名称存在，判断目标路径是否存在
+            {
+                if(prefabDir[name].Contains(dir)) return;
+                prefabDir[name].Add(dir);
+                prefabs.Get(dir+name,ob=>{
+                    Debug.Log("已添加Prefab："+dir+name);
+                });
+            }
+            // 初始化激活/未激活列表
+            string prefabName = dir+name;
+            obActived.Add(prefabName,new List<GameObject>());
+            obUnactived.Add(prefabName,new Queue<GameObject>());
+        }
+
+
+        // 获取目标类型Prefab的可用复制体
+        public GameObject Get(string dir, string name,Transform parent=null)
+        {
+            AddPrefab(dir,name);                        // 保证Prefab本体存在
+
+            GameObject ret;
+            string prefabName = dir+name;
+
+            if(obUnactived[prefabName].Count==0)        // 该Prefab不存在未激活的复制体
+            {
+                ret = GameObject.Instantiate(prefabs.Get(prefabName));
+                ret.name = prefabName;
+                Recycle(ret);
+            }
+
+            ret = obUnactived[prefabName].Dequeue();
+            ret.transform.eulerAngles = new Vector3(0,0,0);
+            if(parent) ret.transform.parent = parent;   // 也可以将复制体挂到别的对象身上
+            else ret.transform.parent = parentTarget.transform;
+            ret.SetActive(true);
+            obActived[prefabName].Add(ret);
+
+            return ret;
+        }
+
+
+        // 回收目标复制体（自动判断Prefab本体并回收到对应队列）
+        public void Recycle(GameObject ob, Action<GameObject> callback=null)
+        {
+            string prefabName = ob.name;
+            if(obActived[prefabName].Contains(ob)) obActived[prefabName].Remove(ob);
+            ob.SetActive(false);
+            obUnactived[prefabName].Enqueue(ob);
+            callback?.Invoke(ob);
+        }
+
+
+        
+        public void SetAllActiveObject(string dir, string name,Action<GameObject> setCb)
+        {
+            string prefabName = dir+name; 
+            foreach(GameObject ob in obActived[prefabName]) setCb(ob);
+        }
+
+        public override void Clear()
+        {
+            prefabs.Clear();
+            prefabDir.Clear();
+            foreach(string name in obActived.Keys)
+            {
+                foreach(GameObject ob in obActived[name])
+                {
+                    GameObject.Destroy(ob);
+                }
+            }
+            obActived.Clear();
+            foreach(string name in obUnactived.Keys)
+            {
+                foreach(GameObject ob in obActived[name])
+                {
+                    GameObject.Destroy(ob);
+                }
+            }
+            obUnactived.Clear();
+        }
+    }
+}
+```
+
+##### 组件管理类 BehaviourManager
+
+```c#
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using UnityEngine;
+
+
+namespace ProjectUtil
+{
+    /*
+        组件管理
+            用字典存储可能会用到的多个组件
+            由于主要用于静态存储，不需要帧更新，所以定义为普通类
+            可以跟存储组件的类型创建不同的存储对象
+        注：
+            [只负责保存组件]
+            常用于 [需要挂载很多组件的对象] ，组件无论是否激活都归此类管理
+            得益于引用类型的特点，可直接传入需要操作的对象
+            组件激活后 [自动挂载到 userObject]  （这是由于创建组件需要通过 AddComponent 方法）
+
+        示例：某个游戏对象可能有多个音频组件AudioSource，创建本Manager进行管理
+            BehaviourManager<AudioSource> audioSourceManager = new ComponentManager<AudioSource>(gameObject);
+    */
+    public interface IBehaviourManager<T> where T : Behaviour
+    {
+        public void Active(out T component);
+        // public void Remove(out T component);
+        public void Recycle(T component,Action<T> callback=null);
+        public void RecycleAllAuto(Func<T,bool> judge,Action<T> callback=null);
+        public void SetAllActiveComponent(Action<T> setCb);
+    }
+
+
+    public class BehaviourManager<T> : Manager<T>, IBehaviourManager<T> where T : Behaviour
+    {
+        protected List<T> cpActivated;            // 已激活的组件
+        protected Queue<T> cpUnactivated;         // 未激活的组件
+
+
+        public BehaviourManager(GameObject root) : base(root)
+        {
+            cpActivated = new List<T>();
+            cpUnactivated = new Queue<T>();
+        }
+        protected override void initRelativeSystems()
+        {
+            relativeSystems = new string[]{};
+        }
+
+
+        // 激活：从未激活队列中取出，激活，加入激活列表，返回组件对象
+        public void Active(out T component)
+        {
+            // 取出
+            if(cpUnactivated.Count>0)
+                component = cpUnactivated.Dequeue();
+            else
+            {
+                if(userObject==null)
+                {
+                    Debug.Log("对应的系统对象不存在，无法激活新的组件");
+                    component = null;
+                    return;
+                }
+                component = userObject.AddComponent<T>();
+            }
+            // 激活
+            component.enabled = true;
+            cpActivated.Add(component);
+        }
+
+
+        // 回收：从激活列表中删除，加入未激活队列，可用回调处理回收的目标
+        public void Recycle(T component,Action<T> callback=null)
+        {
+            component.enabled = false;
+            cpActivated.Remove(component);
+            cpUnactivated.Enqueue(component);
+            callback?.Invoke(component);
+        }
+        public void RecycleAt(int index,Action<T> callback=null)
+        {
+            if(index>=cpActivated.Count || index<0) return;
+            T component = cpActivated[index];
+            component.enabled = false;
+            cpActivated.Remove(component);
+            cpUnactivated.Enqueue(component);
+            callback?.Invoke(component);
+        }
+
+
+        // 自动回收：根据回收条件，回收当前激活列表中可回收的对象，可用回调处理回收的目标
+        public void RecycleAllAuto(Func<T,bool> judge,Action<T> callback=null)
+        {
+            for(int i=cpActivated.Count-1;i>=0;i--)
+                if(judge(cpActivated[i]))
+                {
+                    callback?.Invoke(cpActivated[i]);
+                    RecycleAt(i,callback);
+                }
+        }
+
+
+        // 对激活的组件进行统一操作
+        public void SetAllActiveComponent(Action<T> setCb)
+        {
+            foreach(T component in cpActivated) setCb(component);
+        }
+
+        // 清空存储数据
+        public override void Clear()
+        {
+            foreach(T cp in cpActivated) GameObject.Destroy(cp);
+            cpActivated.Clear();
+            foreach(T cp in cpUnactivated) GameObject.Destroy(cp);
+            cpUnactivated.Clear();
+        }
+    }
+}
+```
+
+##### 音乐管理类 MusicManager
+
+```c#
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using UnityEngine;
+
+
+namespace ProjectUtil
+{
+    /*
+        声音管理工具
+            挂载此脚本的对象可作为声音管理对象，负责播放音效、BGM
+            声音分类：
+                Bgm：持续播放，很少更改，单一播放
+                音效：大量短音频资源，可能会重复播放、叠加播放
+            因此：
+                Bgm用一个组件控制
+                音效用 ResourceManager + 继承BehaviourManager 控制
+    */
+    public interface IMusicManager
+    {
+        public float BgmVolume {get;set;}
+        public float SoundVolume {get;set;}
+        public ResourceManager<AudioClip> ClipManager {get;}
+
+        // 播放Bgm：由于Bgm同一时间唯一，因此只提供播放方法即可
+        public void PlayBgm(string name);
+        public void StopBgm(bool isPause);
+        // 播放音效：支持用回调控制目标音效所在的音频组件
+        public void PlaySound(string name,Action<AudioSource> callback=null,GameObject target=null);
+        public void StopSound(AudioSource sound);
+    }
+
+
+
+    public class MusicManager : BehaviourManager<AudioSource> , IMusicManager
+    {
+        // 资源目录
+        string soundDir;                // Resources下音效所在目录
+        string bgmDir;                  // Resources下bgm所在目录
+
+        // 音量
+        float bgmVolume;                // Bgm音量
+        public float BgmVolume 
+        {
+            get {return bgmVolume;}
+            set 
+            {
+                bgmVolume = value;
+                fadeUtil.SetRange(0,bgmVolume);
+            }
+        }
+        float soundVolume;              // 音效音量
+        public float SoundVolume
+        {
+            get {return soundVolume;}
+            set {soundVolume = value;}
+        }
+
+        AudioSource mBgm;               // 播放Bgm的组件
+        AudioSource tempSource;
+        FadeUtil fadeUtil;              // 实现淡入淡出效果的工具
+        // 存储加载的声音资源 
+        ResourceManager<AudioClip> clipManager;
+        public ResourceManager<AudioClip> ClipManager
+        {
+            get {return clipManager;}
+        }
+        
+                         
+        
+        
+        public MusicManager(GameObject gameObject,string soundDir=null,string bgmDir = null) : base(gameObject)
+        {
+            soundDir = "Audio/Sound/";
+            bgmDir = "Audio/BGM/";
+            if(soundDir!=null) this.soundDir = soundDir;
+            if(bgmDir!=null) this.bgmDir = bgmDir;
+            
+            bgmVolume = 1f;
+            soundVolume = 1f;
+
+            fadeUtil = new FadeUtil(0,bgmVolume,Time.deltaTime);
+            clipManager = ResourceSystem.instance.musicManager;
+
+            Debug.Log("MusicManager：构造完毕");
+        }
+        protected override void initRelativeSystems()
+        {
+            relativeSystems = new string[]{"ResourceSystem"};
+        }
+
+
+        // 需要在对象的Update中执行
+        public void Update()
+        {
+            if(fadeUtil.State!=FadeSate.Stop)
+            {
+                // Debug.Log("当前状态："+fadeUtil.State);
+                mBgm.volume = fadeUtil.Update();
+            }
+        }
+
+
+        public void PlayBgm(string name)
+        {
+            if(mBgm==null)
+            {
+                    mBgm = userObject.AddComponent<AudioSource>();
+                    mBgm.loop = true;
+                    mBgm.volume = 0;
+            }
+            // 资源库中取得资源
+            clipManager.Get(bgmDir+name,GetBgmCallBack);
+        }
+        // 获取Bgm资源回调处理
+        public void GetBgmCallBack(AudioClip bgm)
+        {
+            if(bgm) Debug.Log("正在处理获取的Bgm："+bgm.name);
+            if(!mBgm.isPlaying)     // 当前无播放的Bgm
+            {
+                fadeUtil.SetState(FadeSate.In,true,null);
+                mBgm.clip = bgm;
+                mBgm.Play();
+            }
+            else                    // 当前有正在播放的Bgm
+            {
+                fadeUtil.SetState(FadeSate.Out,false,()=>{
+                    // 之前Bgm淡出后，渐入当前Bgm
+                    mBgm.Stop();
+                    mBgm.clip = bgm;
+                    fadeUtil.SetState(FadeSate.In,true);
+                    mBgm.Play();
+                });
+                
+            }
+            if(bgm) Debug.Log("MusicManager 当前Bgm："+mBgm.clip.name);
+        }
+
+        public void StopBgm(bool isPause)
+        {
+            if(isPause) mBgm.Pause();
+            else mBgm.Stop();
+        }
+
+
+        public void PlaySound(string name, Action<AudioSource> callback = null,GameObject target=null)
+        {
+            // 获取组件
+            RecycleAllAuto( audioS=>audioS.isPlaying );
+            Active(out tempSource);
+            // 获取资源
+            clipManager.Get(soundDir+name,(clip)=>{
+                tempSource.clip = clip;
+                tempSource.loop = false;
+                tempSource.volume = soundVolume;
+                tempSource.Play();
+                callback?.Invoke(tempSource);
+            });
+        }
+
+        // 主要针对循环音效
+        public void StopSound(AudioSource sound)
+        {
+            sound.Stop();
+            Recycle(sound);
+        }
+        public void StopSoundAt(int index)
+        {
+            RecycleAt(index,(c)=>{c.Stop();});
+        }
+
+        public override void Clear()
+        {
+            base.Clear();
+        }
+    }
+
+
+}
+```
+
+##### C#对象管理类 NormalObjectManager
+
+```c#
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+
+namespace ProjectUtil
+{
+    /*
+        自定义类的对象管理
+            专门负责管理需要重复创建且大量出现的自定义类对象（例如计时器）
+            不同于RepPrefabObjManager。此类主要针对一些与Unity无关的自定义类
+            同一个NormalObjectManager对象 [只能管理同一个类的对象]
+
+        注：被管理对象的类必须支持无参构造
+    */
+    public interface INormalObjectManager<T>
+    {
+        public T Get(Action<T> callback);
+        public void Recycle(T ob);
+        public void Clear();
+    }
+
+
+    public class NormalObjectManager<T> : Manager<T>, INormalObjectManager<T>
+    {
+        protected List<T> workingList;            // 正在使用的类对象
+        protected Queue<T> availableQue;          // 未被使用的类对象
+        Func<T> create;                  // 目标类的构造函数
+
+        public NormalObjectManager(Func<T> ctor) : base(null)
+        {
+            create = ctor;
+        }
+        protected override void initRelativeSystems()
+        {
+
+        }
+        
+
+        public virtual T Get(Action<T> callback)
+        {
+            T ret;
+            if(availableQue.Count==0)
+            {
+                ret = create();
+                Recycle(ret);
+            }
+
+            ret = availableQue.Dequeue();
+            workingList.Add(ret);
+            callback?.Invoke(ret);
+            return ret;
+        }
+
+        public void Recycle(T ob)
+        {
+            if(workingList.Contains(ob)) workingList.Remove(ob);
+            availableQue.Enqueue(ob);
+        }
+
+        public override void Clear()
+        {
+            workingList.Clear();
+            availableQue.Clear();
+        }
+    }
+}
+```
+
+##### 测试管理类 TestManager
+
+```c#
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using UnityEngine;
+
+
+namespace ProjectUtil
+{
+    public class TestManager<T> : Manager<T> where T : UnityEngine.Object
+    {
+        public List<GameObject> objectList;
+        public Queue<GameObject> recycleList;
+        string[] nameArr;
+
+
+        public TestManager(GameObject sys) : base(sys)
+        {
+            objectList = new List<GameObject>();
+            recycleList = new Queue<GameObject>();
+            nameArr = new string[]{"dsh","htm","zdd","htm2","cwf","xg"};
+            initList();
+        }
+        protected override void initRelativeSystems()
+        {
+            relativeSystems = new string[]{"TestSystem"};
+        }
+
+        void initList()
+        {
+            foreach(string s in nameArr)
+            {
+                GameObject ob = new GameObject(s);
+                ob.transform.SetParent(userObject.transform);
+                objectList.Add(ob);
+            }
+        }
+        public void printList()
+        {
+            int n = objectList.Count;
+            string[] curName = new string[n];
+            Debug.Log("对象列表：");
+            for(int i=0;i<n;i++)
+                Debug.Log(objectList[i].name);
+            Debug.Log("回收列表顶部：");
+            if(recycleList.Count>0) Debug.Log(recycleList.Peek().name);
+        }
+
+
+        // 测试外部数据操作
+        public void Remove(GameObject ob)
+        {
+            objectList.Remove(ob);
+            recycleList.Enqueue(ob);
+        }
+
+        public override void Clear()
+        {
+            
+        }
+    }
+}
+```
+
+##### 计时器管理类 TimerManager
+
+```c#
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+
+namespace ProjectUtil
+{
+    /*
+        计时器Manager
+            存储未使用的和正在使用的计时器
+            提供了两种Get方法
+            需要手动更新计时器
+    */
+    public interface ITimerManager
+    {
+        public TimerUtil GetWithStart(float delayTime, Action<TimerUtil> onFinished, bool isLoop,Action<TimerUtil> callback);
+        public void UpdateAllTimer();
+    }
+
+    public class TimerManager : NormalObjectManager<TimerUtil> , ITimerManager
+    {
+        public TimerManager() : base(null)
+        {
+            
+        }
+
+        public override TimerUtil Get(Action<TimerUtil> callback=null)
+        {
+            TimerUtil ret;
+            if(availableQue.Count==0)
+            {
+                ret = new TimerUtil();
+                Recycle(ret);
+            }
+
+            ret = availableQue.Dequeue();
+            workingList.Add(ret);
+            ret.onFinished += RecycleOnEnd;
+            callback?.Invoke(ret);
+            return ret;
+        }
+        public TimerUtil GetWithStart(float delayTime, Action<TimerUtil> onFinished, bool isLoop,Action<TimerUtil> callback=null)
+        {
+            TimerUtil ret;
+            if(availableQue.Count==0)
+            {
+                ret = new TimerUtil();
+                Recycle(ret);
+            }
+
+            ret = availableQue.Dequeue();
+            workingList.Add(ret);
+            onFinished += RecycleOnEnd;
+            ret.Start(delayTime,onFinished,isLoop);
+            callback?.Invoke(ret);
+            return ret;
+        }
+        void RecycleOnEnd(TimerUtil timer)
+        {
+            Recycle(timer);
+        }
+
+
+        public void UpdateAllTimer()
+        {
+            int n = workingList.Count;
+            if(n==0) return;
+            for(int i=n-1;i>-1;i--) workingList[i].UpdateTimer();
+        }
+    }
+}
+```
+
+
+
+------
+
+
+
+
 
 
 
