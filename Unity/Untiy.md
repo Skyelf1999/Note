@@ -725,6 +725,12 @@ public class FirstSpell : MonoBehaviour
 >
 > **不具备刚体** 的物体则 **只能作为静止的被碰撞物体** ，本身不发生运动
 
+##### Collider类型
+
+![image-20230430104013595](Untiy.assets/image-20230430104013595.png)
+
+- 
+
 ##### 组件属性
 
 - 碰撞体大小：`Vector2 collider.size`
