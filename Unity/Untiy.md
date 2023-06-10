@@ -2860,19 +2860,23 @@ public class UIManager : MonoBehaviour
 
 ##### 动画组件Animation
 
-- 窗口创建
+- 创建动画剪辑资源 **Animation Clip**
 
-  - 添加 Animation
-    ![image-20221004102137083](Untiy.assets/image-20221004102137083.png)
+  > Animation Clip为基本的动画资源
 
-  - 打开动画创建窗口：窗口 --> 动画 --> 动画
+  - Animation窗口：窗口 --> 动画 --> 动画
+
     ![image-20221004101209266](Untiy.assets/image-20221004101209266.png)
 
     - 可以选择现有的动画或创建新的动画
 
-    - **添加配置**：添加当前对象在动画中需要改变属性的相关组件
+      > 操作时一定要选中对应的Prefab或GameObject
 
-      > 缩放动画：transform.Scale
+    - **添加属性**：添加当前对象在动画中 **需要改变属性的相关组件**
+
+      > 窗口右侧时间轴显示每个属性的关键帧
+      >
+      > 例如缩放属性：transform.Scale
 
   - 添加**关键帧**
 
@@ -2883,7 +2887,17 @@ public class UIManager : MonoBehaviour
     - 选定属性，更改值
     - 点击录制，完成创建
 
-  - 设置播放模式
+  - 示例：使用图片创建动画
+
+    - 将图片资源拖拽入窗口
+    - 修改帧率 Samples
+      ![img](Untiy.assets/5acc40813b814430a296ce62bf5392db.png)
+
+- 动画组件 Animation
+
+  - 添加 Animation
+    ![image-20221004102137083](Untiy.assets/image-20221004102137083.png)
+  - 设置动画资源的播放模式
     ![image-20221004103936598](Untiy.assets/image-20221004103936598.png)
 
 - 脚本控制
@@ -2950,18 +2964,22 @@ public class UIManager : MonoBehaviour
 
 > 可以控制 **多个动画** 之间的切换
 
-- 创建动画器控制器 AnimatorController
-  ![image-20221004105021874](Untiy.assets/image-20221004105021874.png)
+- 创建动画器控制器 **AnimatorController**
 
-- 添加动画器 Animator，设置动画控制器
+  > AnimatorController用于控制动画资源之间的切换
+
+  <img src="Untiy.assets/image-20221004105021874.png" alt="image-20221004105021874" style="zoom:67%;" />
+
+- 动画器 Animator
+
   ![image-20221004105102073](Untiy.assets/image-20221004105102073.png)
 
-- 查看当前对象状态机
-  ![image-20221004105125921](Untiy.assets/image-20221004105125921.png)
+- 动画器**状态机**
+  <img src="Untiy.assets/image-20221004105543352.png" alt="image-20221004105543352" style="zoom:67%;" />
 
-- **状态机**
-  ![image-20221004105543352](Untiy.assets/image-20221004105543352.png)
-
+  - 打开窗口
+    <img src="Untiy.assets/image-20221004105125921.png" alt="image-20221004105125921" style="zoom:67%;" />
+    
   - 基础
 
     > Entry为入口，链接默认状态
@@ -2988,7 +3006,7 @@ public class UIManager : MonoBehaviour
 
   - 获取组件：`Animator anim = GetComponent<Animator>();`
 
-  - 创建状态参数
+  - 操作状态参数
 
     - 获取：`anim.GetXXX("名称")`
     - 设定：`anim.SetXXX("名称")`
