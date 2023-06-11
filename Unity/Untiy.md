@@ -687,6 +687,10 @@ public class FirstSpell : MonoBehaviour
   - 动态连续 Continuous Dynamic
   - 推测连续 Continuous Speculative
 
+- 休眠模式
+
+  > 为了优化资源，**物理系统**在**刚体**停止移动时会停止计算刚体的碰撞
+
 - 运动限制 Constraints
 
 - 速度 velocity
@@ -1062,9 +1066,21 @@ public void OnDrawGizmos()
 
 > 一般是自动添加Renderer组件，针对不同对象添加的组件类型也不同
 >
-> - 一般3D：Mesh Renderer
-> - 绑定了骨骼的模型：Skinned Mesh Renderer
-> - 2D：SpriteRenderer
+
+- 一般3D：Mesh Renderer
+
+- 绑定了骨骼的模型：Skinned Mesh Renderer
+
+- 2D图片：SpriteRenderer
+
+  - 绘制模式
+
+    > 通过矩形工具改变Sprite形状的方式
+
+    - 简单：拉伸
+      ![image-20230604160733311](Untiy.assets/image-20230604160733311.png)
+    - 平铺：用Sprite铺满区域
+      ![image-20230604160717736](Untiy.assets/image-20230604160717736.png)
 
 ##### 材质 Material
 
@@ -1247,6 +1263,8 @@ public void OnDrawGizmos()
 
 - 瓦片绘板
 
+  > 相当于调色板，可用瓦片绘板里的资源绘制瓦片地图
+
   - 打开面板
     ![image-20230405103118760](Untiy.assets/image-20230405103118760.png)
 
@@ -1300,9 +1318,12 @@ public void OnDrawGizmos()
 
 ##### 单片Collider
 
+> 为每种选择使用Collider的瓦片设置单独的Collider
+
 - 为Tilemap对象添加 **Tilemap Collider**
   ![image-20230415111837998](Untiy.assets/image-20230415111837998.png)
 - 设定瓦片资源是否使用Collider
+  
   ![image-20230415111930288](Untiy.assets/image-20230415111930288.png)
 
 ##### 复合Collider
@@ -1312,6 +1333,10 @@ public void OnDrawGizmos()
 - 添加组件：Composite Collider
 - 设置
   ![image-20230415112100506](Untiy.assets/image-20230415112100506.png)
+
+
+
+
 
 
 
