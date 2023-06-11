@@ -500,6 +500,8 @@ public class FirstSpell : MonoBehaviour
 
 - **距离计算**：`float dis = Vector3.Distance(v1,v2)`
 
+- 单位化：`v.Normalize()`
+
 
 
 ### 基础属性&方法
@@ -2883,46 +2885,50 @@ public class UIManager : MonoBehaviour
 
 ### 动画
 
+##### 动画资源 Animation Clip
+
+> Animation Clip为基本的动画资源
+
+- Animation动画制作窗口：窗口 --> 动画 --> 动画
+
+  ![image-20221004101209266](Untiy.assets/image-20221004101209266.png)
+
+  - 可以选择现有的动画或创建新的动画
+
+    > 操作时一定要选中对应的Prefab或GameObject
+
+  - **添加属性**：添加当前对象在动画中 **需要改变属性的相关组件**
+
+    > 你可以对 **游戏对象** 任何组件中的任何属性进行随时间变化的动画处理。
+    >
+    > 窗口右侧时间轴显示每个属性的关键帧
+    >
+    > 例如缩放属性：transform.Scale
+
+- 创建动画
+
+  > 一定要以某个被选中的游戏对象/Prefab为对象制作动画
+
+- 添加**关键帧**
+
+  > Unity会在关键帧数值间平滑过渡
+
+  - 点击录制
+  - 选定时间点
+  - 选定属性，更改值
+  - 点击录制，完成创建
+
+- 示例：使用图片创建动画
+
+  - 将图片资源拖拽入窗口
+  - 修改帧率 Samples
+    ![img](Untiy.assets/5acc40813b814430a296ce62bf5392db.png)
+
 ##### 动画组件Animation
 
-- 创建动画剪辑资源 **Animation Clip**
-
-  > Animation Clip为基本的动画资源
-
-  - Animation窗口：窗口 --> 动画 --> 动画
-
-    ![image-20221004101209266](Untiy.assets/image-20221004101209266.png)
-
-    - 可以选择现有的动画或创建新的动画
-
-      > 操作时一定要选中对应的Prefab或GameObject
-
-    - **添加属性**：添加当前对象在动画中 **需要改变属性的相关组件**
-
-      > 窗口右侧时间轴显示每个属性的关键帧
-      >
-      > 例如缩放属性：transform.Scale
-
-  - 添加**关键帧**
-
-    > Unity会在关键帧数值间平滑过渡
-
-    - 点击录制
-    - 选定时间点
-    - 选定属性，更改值
-    - 点击录制，完成创建
-
-  - 示例：使用图片创建动画
-
-    - 将图片资源拖拽入窗口
-    - 修改帧率 Samples
-      ![img](Untiy.assets/5acc40813b814430a296ce62bf5392db.png)
-
-- 动画组件 Animation
-
-  - 添加 Animation
+- 添加组件
     ![image-20221004102137083](Untiy.assets/image-20221004102137083.png)
-  - 设置动画资源的播放模式
+- 设置动画资源的播放模式
     ![image-20221004103936598](Untiy.assets/image-20221004103936598.png)
 
 - 脚本控制
@@ -2985,47 +2991,87 @@ public class UIManager : MonoBehaviour
 
       > 0~1
 
-##### **动画器与状态机 Animator&StateMachine
+##### 动画控制器 AnimatorController
 
-> 可以控制 **多个动画** 之间的切换
+- 创建动画器控制器
 
-- 创建动画器控制器 **AnimatorController**
-
-  > AnimatorController用于控制动画资源之间的切换
+  > AnimatorController用于控制 **动画资源之间的切换**
 
   <img src="Untiy.assets/image-20221004105021874.png" alt="image-20221004105021874" style="zoom:67%;" />
 
-- 动画器 Animator
+- 编辑：Animator窗口
 
-  ![image-20221004105102073](Untiy.assets/image-20221004105102073.png)
+  - 进入
 
-- 动画器**状态机**
-  <img src="Untiy.assets/image-20221004105543352.png" alt="image-20221004105543352" style="zoom:67%;" />
+    > s也可以直接双击Controller进入
 
-  - 打开窗口
     <img src="Untiy.assets/image-20221004105125921.png" alt="image-20221004105125921" style="zoom:67%;" />
-    
+
+  - 界面
+    ![image-20230611125946873](Untiy.assets/image-20230611125946873.png)
+
+    - 左侧：**Layers** 和 **Parameters**
+
+      > **Layers** 可用于 **3D 动画**，因为你可以将动画用于角色的不同部分。
+      >
+      > **Parameters** 由我们的脚本用来向 **Controller** 提供信息
+
+    - 右侧：状态机
+
+- **状态机**
+
   - 基础
 
     > Entry为入口，链接默认状态
     >
     > Exit为出口
 
-  - 操作
+  - 基本操作
 
     - 设定默认动画状态
       ![image-20221004105648752](Untiy.assets/image-20221004105648752.png)
     - 添加动画资源（直接拖拽）
+  - 动画切换
+    
     - 设定流向
       ![image-20221004110226208](Untiy.assets/image-20221004110226208.png)
     - 添加状态参数
       ![image-20221004110539512](Untiy.assets/image-20221004110539512.png)
     - 设定状态转换条件
+      
+      > 选中转换线条即可设置
+      >
+      > 如果没有条件，则在 **动画结束时发生过渡**，常用于瞬时状态
+      
       ![image-20221004110530380](Untiy.assets/image-20221004110530380.png)
-    - 子状态机
+  - 子状态机
       ![image-20221004114355012](Untiy.assets/image-20221004114355012.png)
-    - 自定义动画过度
+  - **创建状态**
       ![image-20221004114522253](Untiy.assets/image-20221004114522253.png)
+  
+- 状态机节点：混合树 Blend Tree
+
+  > 将当前状态点用参数表示，并播放距离状态点最近的动画
+
+  ![image-20230611145407613](Untiy.assets/image-20230611145407613.png)
+
+  - 混合类型 Blend Type
+
+    > 使用几个变量来设置动画切换条件
+    >
+    > 可以在左侧栏创建参数并选择
+
+  - 行为转换
+
+    - 添加Motion并设置动画资源、转换点
+    - Blend Tree会 **自动播放距离当前参数最近的Motion**
+
+
+##### 动画播放组件 Animator
+
+- 动画器 Animator
+
+  ![image-20221004105102073](Untiy.assets/image-20221004105102073.png)
 
 - 脚本控制
 

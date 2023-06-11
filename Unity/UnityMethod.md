@@ -112,6 +112,10 @@ Rigidbody rb = other.gameObject.GetComponent<Rigidbody>();
 
   > 将x向y最大移动delta
 
+##### 近似
+
+- 是否近似相等：`Mathf.Approximately(float a,float b)`
+
 ------
 
 
