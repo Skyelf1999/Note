@@ -690,6 +690,40 @@ public class FirstSpell : MonoBehaviour
   ```
   
 
+
+
+### Rect Transform
+
+##### 基础属性
+
+- 位置
+
+  > 自身轴心相对自身锚点的位置
+
+- 大小
+
+- 锚点
+
+  > 如果有父对象，则自动定位在父对象的几何中心
+  >
+  > 锚点还可以**圈定自动拉伸范围**
+  >
+  > 示例中，角色头像的锚点设定在4个角，这样当拉伸父对象时，**角色头像的相对位置不会变化**
+
+  <img src="Untiy.assets/image-20230702094345760.png" alt="image-20230702094345760" style="zoom:67%;" />
+
+- 轴心
+
+  > 调整大小时，是根据轴心调整大小
+
+- 旋转
+
+- 缩放
+
+##### 脚本控制
+
+- 
+
 ------
 
 
@@ -2050,6 +2084,10 @@ public void OnDrawGizmos()
 
 - 画布缩放Canvas Scaler
 
+  > 固定像素/物理尺寸时，无论屏幕大小如何变化，UI大小保持不变
+  >
+  > 但若屏幕太小，会显得UI过大
+  
   - 按像素 Constant Pixel Size
   - 按屏幕尺寸
   - 按物理尺寸
@@ -2921,6 +2959,10 @@ public class UIManager : MonoBehaviour
 ##### 阴影 Shadow
 
 
+
+### 实用技巧
+
+
 ------
 
 
@@ -3147,10 +3189,12 @@ public class UIManager : MonoBehaviour
 ![image-20230623105453175](Untiy.assets/image-20230623105453175.png)
 
 - 持续时间
-- 循环播放
-- 起始生命周期
-- 起始速度
-- 起始大小
+- 循环播放 Looping
+- 起始生命周期 Start Lifetime
+- 起始速度 Start Speed
+- 起始大小 Start Size
+- 模拟空间 Simulation Space：粒子产生后使用世界/局部坐标
+- 停止行动 Stop Action
 
 ##### 可选属性
 
@@ -3158,13 +3202,20 @@ public class UIManager : MonoBehaviour
 
 - 发射
 
+  > 突发可以实现突然喷发的效果
+
+  ![image-20230701093810629](Untiy.assets/image-20230701093810629.png)
+
 - 形状
+  ![image-20230701093822312](Untiy.assets/image-20230701093822312.png)
 
 - 生命周期内大小
 
   > 大小渐变
 
-- 生命周期内颜色
+  ![image-20230701093935084](Untiy.assets/image-20230701093935084.png)
+
+- 生命周期内颜色 Color over Lifetime
 
   > 粒子的颜色、透明度渐变
 
