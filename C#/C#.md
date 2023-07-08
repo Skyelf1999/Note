@@ -48,13 +48,159 @@
 
 ### 循环
 
-> 与C语言基本一致
+##### for
+
+##### while
+
+##### foreach
+
+- 使用：`foreach(type element in X)`
+- 可使用foreach遍历的对象
+  - 对象所属类有 IEnumerator GetEnumerator 方法
+  - 是一个返回IEnumerable的函数
 
 
 
 ### 可空类型
 
 ##### `type? 变量名称 = null`
+
+
+
+### 迭代相关
+
+##### 可迭代接口 IEnumerable
+
+> 只有一个抽象方法需要实现
+>
+> 数组、集合都实现了该接口，因此可以使用foreach访问
+
+- 返回迭代器：`IEnumerator GetEnumerator()`
+
+  > 返回一个迭代器
+  >
+  > 任何类只要实现了这个接口，其对象就 **可以被用作foreach遍历**
+
+##### 迭代器接口 IEnumerator
+
+> foreach真正访问的目标，也可以手动调用相关方法实现遍历访问
+
+- 必须成员：指向当前访问对象的游标
+
+- 指向下一项：`bool MoveNext();`
+
+  > 通常使 *游标+1*
+
+- 获取当前项：`object Current{get;};`
+
+  > 返回当前游标指向的项
+
+- 重置游标：`void Reset();`
+
+- 示例：手动遍历
+
+  ```c#
+  // 自定义类
+  public class MyList : IEnumerable
+  {
+      // ...................
+  }
+  
+  
+  // 主程序部分
+  class Program
+  {
+      static void Main(string[] args)
+      {
+          MyList list = new MyList();
+          // 获取迭代器
+          IEnumerator enumerator = list.GetEnumerator();
+          // 手动使用迭代器：移动游标、访问
+          while(enumerator.MoveNext())
+          {
+              var curObject = enumerator.Current;
+          }
+      }
+  }
+  ```
+
+##### yield实现迭代
+
+- 使用示例
+
+  - 借助 yield 实现GetEnumerator
+
+    ```c#
+    /// <summary>
+    /// 用 yiled return 实现GetEnumerator的可迭代访问类
+    /// </summary>
+    public class TestEnumerable : IEnumerable
+    {
+        int[] testData;
+        int index;
+    
+        public TestEnumerable()
+        {
+            testData = new int[]{1,2,3,4,5,99};
+            index = 0;
+        }
+    
+        public IEnumerator GetEnumerator()
+        {
+            while(index<9) yield return testData[index++%6];
+            index = 0;
+        }
+    }
+    
+    
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            TestEnumerable test = new TestEnumerable();
+            foreach(int number in test) Console.WriteLine(number);
+            // 输出：1 2 3 4 5 99 1 2 3
+        }
+    }
+    ```
+
+  - 直接使用yield构造 **IEnumerable方法**
+
+    > 自动生成实现了IEnumrable和IEnumerator的类
+    >
+    > 因此可以直接用可迭代方法的返回值调用 MoveNext()、Current
+
+    ```c#
+    class Program
+    {
+        /// <summary>
+        /// 使用yield实现可迭代访方法
+        /// </summary>
+        /// <returns>IEnumerable</returns>
+        public static IEnumerable<int> enumerableFuc()
+        {
+            yield return 1;
+            yield return 2;
+            yield return 3;
+            yield break;		// 终止迭代
+            yield return 4;
+        }
+    
+        static void Main(string[] args)
+        {
+            //通过foreach循环迭代此函数
+            foreach(int item in enumerableFuc()) WriteLine(item);
+            // 输出：1 2 3
+            
+            // 手动运行迭代器
+            IEnumerator<int> enumerator = enumFunc().GetEnumerator();
+            while(enumerator.MoveNext()) Console.WriteLine(enumerator.Current);
+            // 输出：1 2 3
+        }
+    }
+    ```
+
+- 
 
 ------
 

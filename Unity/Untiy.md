@@ -453,6 +453,54 @@ public class FirstSpell : MonoBehaviour
 
 
 
+### Cinemachine 包
+
+##### 功能介绍
+
+> **Cinemachine** 使你可以创建**复杂的 3D 摄像机设置**，从而允许在多个摄像机之间移动和切换。
+>
+> 你现在只需用来让摄像机跟随 **2D** 目标。**Cinemachine** 还包括 **2D helper 功能**，可将摄像机限制在特定边界范围内，这样就不会显示地图边界之外的对象。
+>
+> **Cinemachine** 可与多个摄像机配合使用，并根据游戏的需要在多个摄像机之间进行切换，例如在对话中对某个镜头与反拍镜头进行切换。
+
+##### 基础设置
+
+- 创建对象
+  ![image-20230623100926253](Untiy.assets/image-20230623100926253.png)
+- 相机视野范围
+  ![image-20230623101052680](Untiy.assets/image-20230623101052680.png)
+
+##### 跟随目标
+
+![image-20230623101111415](Untiy.assets/image-20230623101111415.png)
+
+##### 移动范围限制 Cinemachine Confiner
+
+- 添加拓展
+  ![image-20230623101852964](Untiy.assets/image-20230623101852964.png)
+
+- 创建用于实现限制的Collider
+
+  > 创建一个空对象用来专门挂载这个限制移动范围的Collider
+
+  ![image-20230623102735431](Untiy.assets/image-20230623102735431.png)
+
+- 设定范围限制Collider
+
+  > 设定后，虚拟相机的视野（白框）会被限定在Collider范围（黄框）内
+
+  ![image-20230623102808138](Untiy.assets/image-20230623102808138.png)
+
+  ![image-20230623103422907](Untiy.assets/image-20230623103422907.png)
+
+  
+
+------
+
+
+
+
+
 
 
 # 游戏对象 GameObject
@@ -641,6 +689,40 @@ public class FirstSpell : MonoBehaviour
   }
   ```
   
+
+
+
+### Rect Transform
+
+##### 基础属性
+
+- 位置
+
+  > 自身轴心相对自身锚点的位置
+
+- 大小
+
+- 锚点
+
+  > 如果有父对象，则自动定位在父对象的几何中心
+  >
+  > 锚点还可以**圈定自动拉伸范围**
+  >
+  > 示例中，角色头像的锚点设定在4个角，这样当拉伸父对象时，**角色头像的相对位置不会变化**
+
+  <img src="Untiy.assets/image-20230702094345760.png" alt="image-20230702094345760" style="zoom:67%;" />
+
+- 轴心
+
+  > 调整大小时，是根据轴心调整大小
+
+- 旋转
+
+- 缩放
+
+##### 脚本控制
+
+- 
 
 ------
 
@@ -2002,6 +2084,10 @@ public void OnDrawGizmos()
 
 - 画布缩放Canvas Scaler
 
+  > 固定像素/物理尺寸时，无论屏幕大小如何变化，UI大小保持不变
+  >
+  > 但若屏幕太小，会显得UI过大
+  
   - 按像素 Constant Pixel Size
   - 按屏幕尺寸
   - 按物理尺寸
@@ -2873,6 +2959,10 @@ public class UIManager : MonoBehaviour
 ##### 阴影 Shadow
 
 
+
+### 实用技巧
+
+
 ------
 
 
@@ -3092,6 +3182,61 @@ public class UIManager : MonoBehaviour
 
 ![image-20221006091103489](Untiy.assets/image-20221006091103489.png)
 
+##### 基础属性
+
+> 数值属性可选择是固定值还是随机值
+
+![image-20230623105453175](Untiy.assets/image-20230623105453175.png)
+
+- 持续时间
+- 循环播放 Looping
+- 起始生命周期 Start Lifetime
+- 起始速度 Start Speed
+- 起始大小 Start Size
+- 模拟空间 Simulation Space：粒子产生后使用世界/局部坐标
+- 停止行动 Stop Action
+
+##### 可选属性
+
+> 通过勾选以启用
+
+- 发射
+
+  > 突发可以实现突然喷发的效果
+
+  ![image-20230701093810629](Untiy.assets/image-20230701093810629.png)
+
+- 形状
+  ![image-20230701093822312](Untiy.assets/image-20230701093822312.png)
+
+- 生命周期内大小
+
+  > 大小渐变
+
+  ![image-20230701093935084](Untiy.assets/image-20230701093935084.png)
+
+- 生命周期内颜色 Color over Lifetime
+
+  > 粒子的颜色、透明度渐变
+
+- 纹理表格动画
+
+  > 使用导入的图片资源作为粒子
+
+  - 模式
+
+    - 网格
+
+    - 精灵
+
+      > 直接指定Sprite
+
+  - 开始帧
+
+    > 限定使用哪张图
+
+- 
+
 ##### **脚本控制
 
 - 获取组件：`ParticleSystem particle = GetComponent<ParticleSystem>();`
@@ -3279,18 +3424,16 @@ public class UIManager : MonoBehaviour
 >
 > 实际上是枚举器
 
-##### 脚本控制
+##### 协程方法
 
 - 定义协程方法：`IEnumerator 方法名(参数类型 参数)`
 
-- 启动协程方法：`StartCoroutine(方法名(参数));`
-
-- 返回延迟操作：`yield return`
+- 返回操作：`yield return YieldInstruction` 
 
   > 执行到此处，会将指令挂起，直到yield return返回的操作结束
   >
   > 甚至可用此方式多次返回结果
-  
+
   ```c#
   // 等待几秒（WaitForSeconds受Time.timeScale影响）
   yield returnyield return new WaitForSeconds(float seconds);
@@ -3299,10 +3442,38 @@ public class UIManager : MonoBehaviour
   yield return new WaitForFixedUpdate();		// 等待本次FixedUpdate结束
   yield return null;							// 等待一帧
   ```
-  
+
+##### 协程控制
+
+- 控制方法：
+
+  - 启动：` Coroutine StartCoroutine(方法名(参数));`
+
+    > 这是一个属于**Monobehavior** 类的方法
+
+    ```c#
+    public Coroutine StartCoroutine(IEnumerator routine);
+    public Coroutine StartCoroutine(string methodName);
+    public Coroutine StartCoroutine(string methodName, [DefaultValue("null")] object value);
+    ```
+
+  - 停止：`StopCoroutine(Coroutine coroutine)`
+
+- 本质
+
+  > 代码运行到**StartCoroutine**以后，开始在每个 **Update** 后处理协程
+  >
+  > Unity在每帧做的工作就是：调用协程（迭代器）MoveNext() 方法，**如果yield return返回 true ，就从当前位置继续往下执行**
+  >
+  > 不满足就就执行yield之前的，否则继续往下执行
+  >
+  > 脚本的enable对协程无影响，但游戏对象的 `gameObject.SetActive(false)`则会使已启动的协程完全停止
+  >
+  > 也就说协程虽然是在MonoBehvaviour启动的（StartCoroutine）但是协程函数的地位完全是跟MonoBehaviour是一个层次的，不受MonoBehaviour的状态影响，但 **跟MonoBehaviour脚本一样受gameObject 控制**
+
 - 示例
 
-  - 是
+  - 监听某个值
 
     ```c#
     // 协程：监听Update中i的值
