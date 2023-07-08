@@ -3445,7 +3445,7 @@ public class UIManager : MonoBehaviour
 
   - 直接加载：`GameObject prefabObject = Resources.Load<GameObject>(string dir);`
 
-    > 路径dir实际上为：`Resourse/dir`
+    > 路径dir实际上为：`Asset/Resourse/dir`
     >
     > 即预制体在Resourse下的路径
     >
