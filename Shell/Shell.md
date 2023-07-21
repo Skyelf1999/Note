@@ -12,7 +12,7 @@
 
 > Windows用 \ ，PowerShell和Mac用 /
 
-- 查看当前目
+- 查看当前路径
 
   - cmd：`echo %cd%`
   - PowerShell：`pwd`
@@ -106,7 +106,7 @@
 - 剪切/移动
 
   - cmd：`move 文件名.后缀 目标目录`
-    <img src="Shell.assets/image-20230707173337489.png" alt="image-20230707173337489" style="zoom:50%;" />
+    <img src="Shell.assets/image-20230707173337489.png" alt="image-20230707173337489" style="zoom:75%;" />
   - PowerShell：2种都行
   - Mac：`mv 文件.后缀 目标文件夹`
 
