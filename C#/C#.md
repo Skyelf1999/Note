@@ -168,9 +168,7 @@
     }
     ```
 
-    
-
-- 直接使用yield构造 **IEnumerable方法**
+- 直接使用yield构造 **迭代接口方法**
 
   > 自动生成实现了IEnumrable和IEnumerator的类
   >
