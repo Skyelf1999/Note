@@ -77,7 +77,7 @@
 >
 > 数组、集合都实现了该接口，因此可以使用foreach访问
 
-- 返回迭代器：`IEnumerator GetEnumerator()`
+- **返回迭代器**：`IEnumerator GetEnumerator()`
 
   > 返回一个迭代器
   >
@@ -128,7 +128,7 @@
 
 ##### yield实现迭代
 
-- 借助 yield 实现GetEnumerator
+- 借助 yield 实现类的迭代器获取方法 GetEnumerator
 
   - 定义
     ```c#
