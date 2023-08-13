@@ -3588,16 +3588,14 @@ public class UIManager : MonoBehaviour
 
 - 本质
 
-  > 代码运行到**StartCoroutine**以后，开始在每个 **Update** 后处理协程
+  > 代码运行到**StartCoroutine**以后，开始在每个 **Update** 后处理 **传入的迭代器方法**
   >
-  > Unity在每帧做的工作就是：调用协程（迭代器）MoveNext() 方法，**如果yield return返回 true ，就从当前位置继续往下执行**
-  >
-  > 不满足就就执行yield之前的，否则继续往下执行
+  > Unity在每帧做的工作就是：调用协程（迭代器）的MoveNext() 方法，**如果yield return返回 true ，就从当前位置继续往下执行**，否则只执行之前的代码
   >
   > 脚本的enable对协程无影响，但游戏对象的 `gameObject.SetActive(false)`则会使已启动的协程完全停止
   >
   > 也就说协程虽然是在MonoBehvaviour启动的（StartCoroutine）但是协程函数的地位完全是跟MonoBehaviour是一个层次的，不受MonoBehaviour的状态影响，但 **跟MonoBehaviour脚本一样受gameObject 控制**
-
+  
 - 示例
 
   - 监听某个值
@@ -4190,7 +4188,27 @@ public class Cryptor : MonoBehaviour
 
 > 先设置密文Key和IV，再加密解密
 
+------
 
+
+
+
+
+
+
+# 构建、运行、分发
+
+### 构建
+
+##### 基础设置
+
+> 项目设置 --> 播放器 
+
+##### 构建设置
+
+![image-20230715113121564](Untiy.assets/image-20230715113121564.png)
+
+##### 生成
 
 
 
