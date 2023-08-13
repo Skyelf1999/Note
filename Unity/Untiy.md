@@ -435,6 +435,60 @@ public class FirstSpell : MonoBehaviour
 
 - 转场保护：`GameObject.DontDestroyOnLoad(gameObject)`
 
+
+
+### 图层
+
+##### 图层
+
+```c#
+public struct LayerMask
+{
+    //
+    // 摘要:
+    //     Converts a layer mask value to an integer value.
+    public int value { get; set; }
+
+    //
+    // 摘要:
+    //     Given a set of layer names as defined by either a Builtin or a User Layer in
+    //     the, returns the equivalent layer mask for all of them.
+    //
+    // 参数:
+    //   layerNames:
+    //     List of layer names to convert to a layer mask.
+    //
+    // 返回结果:
+    //     The layer mask created from the layerNames.
+    public static int GetMask(params string[] layerNames);
+    //
+    // 摘要:
+    //     Given a layer number, returns the name of the layer as defined in either a Builtin
+    //     or a User Layer in the.
+    //
+    // 参数:
+    //   layer:
+    [NativeMethodAttribute("LayerToString")]
+    [StaticAccessorAttribute("GetTagManager()", Bindings.StaticAccessorType.Dot)]
+    public static string LayerToName(int layer);
+    //
+    // 摘要:
+    //     Given a layer name, returns the layer index as defined by either a Builtin or
+    //     a User Layer in the.
+    //
+    // 参数:
+    //   layerName:
+    [NativeMethodAttribute("StringToLayer")]
+    [StaticAccessorAttribute("GetTagManager()", Bindings.StaticAccessorType.Dot)]
+    public static int NameToLayer(string layerName);
+
+    public static implicit operator int(LayerMask mask);
+    public static implicit operator LayerMask(int intVal);
+}
+```
+
+
+
 ------
 
 
@@ -985,16 +1039,88 @@ public class TestController : MonoBehaviour
   - 碰撞点位置：`hitInfo.point`
   - 碰撞面法线：`hitInfo.normal`
   
-- **检测第一个对象**：
+- **检测第一个对象**：`Physics.RayCast`
 
-  - `bool res = Physics.Raycast(Vector3 origin, Vector3 dir,out hitInfo)`
+  - 3D方法定义
 
-    > 其他可选参数
+    ```c#
+    // 摘要:
+    //     Same as above using ray.origin and ray.direction instead of origin and direction.
+    //
+    // 参数:
+    //   ray:
+    //     The starting point and direction of the ray.
+    //
+    //   maxDistance:
+    //     The max distance the ray should check for collisions.
+    //
+    //   layerMask:
+    //     A that is used to selectively ignore colliders when casting a ray.
+    //
+    //   queryTriggerInteraction:
+    //     Specifies whether this query should hit Triggers.
+    //
+    // 返回结果:
+    //     Returns true when the ray intersects any collider, otherwise false.
+    public static bool Raycast(Ray ray, [Internal.DefaultValue("Mathf.Infinity")] float maxDistance, [Internal.DefaultValue("DefaultRaycastLayers")] int layerMask, [Internal.DefaultValue("QueryTriggerInteraction.UseGlobal")] QueryTriggerInteraction queryTriggerInteraction);
+    
+    public static bool Raycast(Vector3 origin, Vector3 direction, out RaycastHit hitInfo, float maxDistance, int layerMask, QueryTriggerInteraction queryTriggerInteraction);
+    [ExcludeFromDocs]
+    [RequiredByNativeCodeAttribute]
+    
+    public static bool Raycast(Vector3 origin, Vector3 direction, out RaycastHit hitInfo, float maxDistance, int layerMask);
+    [ExcludeFromDocs]
+    
+    public static bool Raycast(Vector3 origin, Vector3 direction, out RaycastHit hitInfo, float maxDistance);
+    [ExcludeFromDocs]
+    
+    public static bool Raycast(Vector3 origin, Vector3 direction, float maxDistance);
+    [ExcludeFromDocs]
+    
+    public static bool Raycast(Vector3 origin, Vector3 direction, float maxDistance, int layerMask);
+    [ExcludeFromDocs]
+    
+    public static bool Raycast(Vector3 origin, Vector3 direction, out RaycastHit hitInfo);
+    [ExcludeFromDocs]
+    
+    public static bool Raycast(Ray ray, out RaycastHit hitInfo);
+    [ExcludeFromDocs]
+    
+    public static bool Raycast(Ray ray, out RaycastHit hitInfo, float maxDistance);
+    [ExcludeFromDocs]
+    
+    public static bool Raycast(Ray ray, out RaycastHit hitInfo, float maxDistance, int layerMask);
+    
+    public static bool Raycast(Ray ray, out RaycastHit hitInfo, [Internal.DefaultValue("Mathf.Infinity")] float maxDistance, [Internal.DefaultValue("DefaultRaycastLayers")] int layerMask, [Internal.DefaultValue("QueryTriggerInteraction.UseGlobal")] QueryTriggerInteraction queryTriggerInteraction);
+    
+    public static bool Raycast(Ray ray);
+    
+    public static bool Raycast(Ray ray, float maxDistance);
+    
+    public static bool Raycast(Ray ray, float maxDistance, int layerMask);
+    ```
+  
+  - 2D方法定义
+  
+    ```c#
+    public static RaycastHit2D Raycast(Vector2 origin, Vector2 direction);
+    
+    public static RaycastHit2D Raycast(Vector2 origin, Vector2 direction, float distance);
+    
+    public static RaycastHit2D Raycast(Vector2 origin, Vector2 direction, float distance, int layerMask);
+    
+    public static RaycastHit2D Raycast(Vector2 origin, Vector2 direction, float distance, int layerMask, float minDepth);
+    
+    public static int Raycast(Vector2 origin, Vector2 direction, ContactFilter2D contactFilter, RaycastHit2D[] results);
+    ```
+  
+    
+  
+  - 常见用法：`Raycast(Vector3 origin, Vector3 direction, out RaycastHit hitInfo, float maxDistance, int layerMask)`
+  
+    > 至少需要 *起点、方向、输出的碰撞* 3个变量
     >
-    > - float 最大距离
-    > - int 层
-
-  - `bool res = Physics.Raycast(Ray ray,out hitInfo)`
+    > 可以用 *int layerMask* 来 **规定检测哪个图层的对象**
   
     ```c#
     public RaycastHit hitInfo;		// 定义类成员
@@ -1007,13 +1133,8 @@ public class TestController : MonoBehaviour
             print("射线碰撞检测："+hitInfo.collider.tag);
         }
     }
-    ```
     
-  - 2D射线检测：`public static RaycastHit2D Raycast(Vector2 origin, Vector2 direction, float distance);`
-  
-    > 注意：当无碰撞对象时，返回null
-  
-    ```c#
+    
     // 检测玩家是否在地面上
     void GroundCheck()
     {
@@ -1031,8 +1152,6 @@ public class TestController : MonoBehaviour
         }
     }
     ```
-  
-    
 
 
 - 返回所有对象：`RaycastHit[] res = Physics.RaycastAll`
@@ -3156,8 +3275,16 @@ public class UIManager : MonoBehaviour
     - 添加Motion并设置动画资源、转换点
     - Blend Tree会 **自动播放距离当前参数最近的Motion**
 
-
 ##### 动画播放组件 Animator
+
+> 挂载AnimationController，控制多个Animation Clip的切换
+
+- 挂载方式
+
+  - 添加组件
+
+  - 直接拖拽多个Sprite
+    <img src="Untiy.assets/image-20230708131818101.png" alt="image-20230708131818101" style="zoom:67%;" />
 
 - 动画器 Animator
 
