@@ -1394,7 +1394,7 @@ setfenv(1,M)
 
 
 
-### module函数
+### **module函数
 
 - 定义模块：`module("模块名",package.seeall)`
 
@@ -1404,6 +1404,9 @@ setfenv(1,M)
 
   ```lua
   module("complex_2",package.seeall)
+  
+  -- 以下的变量、函数定义都是定义在 complex_2 的环境中
+  -- 因此即使不加 local 也不是全局变量/函数
   
   i = {r=0, i=1}
   
