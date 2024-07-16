@@ -3717,7 +3717,7 @@ public class UIManager : MonoBehaviour
 
 - 复制对象：`GameObject newObject = Instantiate(GameObject originObject);`
 
-  > 复制体的默认名称为：本体名称(Clone)
+  > 复制体的默认名称为："本体名称(Clone)"
 
 - 销毁对象：`Destroy(GameObject ob)`
 
@@ -4209,10 +4209,6 @@ public class Cryptor : MonoBehaviour
 ![image-20230715113121564](Untiy.assets/image-20230715113121564.png)
 
 ##### 生成
-
-
-
-# Bolt可视化编程
 
 
 
