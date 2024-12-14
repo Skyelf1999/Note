@@ -1181,29 +1181,38 @@ public void OnDrawGizmos()
 
 ### 地形处理
 
-##### 静态地形
+##### 静态导航
 
 - 打开导航系统界面
   ![image-20221015144541242](Untiy.assets/image-20221015144541242.png)
 - 设定**区域代价**
   ![image-20221015144752141](Untiy.assets/image-20221015144752141.png)
 - 设定对象区域类型
+  
+  > 需要现将对象设置为Navigation Static
+  
   ![image-20221015144848277](Untiy.assets/image-20221015144848277.png)
 - 设置主体属性，烘焙
   ![image-20221015150715939](Untiy.assets/image-20221015150715939.png)
 
-##### 动态地形
+##### 动态导航
 
 > 动态障碍物、可开关的门等
 
-- 移动障碍：``Nav Mesh Obstacle` `
+- 障碍：``Nav Mesh Obstacle` `
+  ![image-20240728093340489](Untiy.assets/image-20240728093340489.png)
+
+  - 切割
+
+    > 用于非静止物体在游戏中的实时Navigation计算
+
 - 跳板：`off Mesh Link`
 
 
 
 ### 导航控制
 
-##### 添加组件
+##### 添加导航代理组件
 
 > Nav Mesh Agent
 
