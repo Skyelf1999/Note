@@ -371,9 +371,9 @@ public 类名称(参数)
 
 - 被 **static** 修饰的类成员，无论有多少对象，只有一个该成员副本
 
-  > 共享一个静态成员
+  > 多个对象共享一个静态成员
 
-- 被被 **static** 修饰的类方法，只能访问静态变量
+- 被被 **static** 修饰的类方法，只能访问static变量
 
 ##### 5. **继承
 
@@ -471,7 +471,33 @@ interface 接口
 
 
 
-### 预处理器指令
+### 动态多态性
+
+##### virtual
+
+##### abstract
+
+
+
+### 反射
+
+------
+
+
+
+
+
+
+
+# XML处理
+
+
+
+
+
+
+
+# 预处理器指令
 
 ##### 1. #define 符号名称
 
@@ -481,21 +507,39 @@ interface 接口
 
 > 用于处理 #define 定义的符号逻辑判断，若被定义则为true
 
+------
 
 
-### 正则表达式
+
+
+
+
+
+# 正则表达式
 
 > https://www.runoob.com/csharp/csharp-regular-expressions.html
 
+------
 
 
-### 异常处理
+
+
+
+
+
+# 异常处理
 
 > https://www.runoob.com/csharp/csharp-exception-handling.html
 
+------
 
 
-### 文件输入输出
+
+
+
+
+
+# 文件输入输出
 
 > https://www.runoob.com/csharp/csharp-file-io.html
 
