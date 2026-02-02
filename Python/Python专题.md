@@ -1,20 +1,90 @@
+# 程序基础
+
+### 环境配置
+
+##### Python解释器
+
+- 安装位置示例：`C:\Users\起名难的神话\AppData\Local\Programs\Python`
+
+- **版本检查**：`python --version`
+
+- 环境变量：默认从上到下顺序调用，可通过 **修改顺序手动设定使用的Python版本**
+
+  ![image-20260127091554151](Python专题.assets/image-20260127091554151.png)
+
+##### vscode
+
+- 插件
+  ![image-20260127091137445](Python专题.assets/image-20260127091137445.png)
+
+- 工程虚拟环境：在工程目录下，`python -m venv 虚拟环境目录名称`
+
+  > 之后，pip调用的是Scripts下的pip，引入的包安装在Lib中
+
+  ![image-20260127093331150](Python专题.assets/image-20260127093331150.png)
+
+##### Anaconda
+
+- 版本验证：`conda --verison`
+
+- 当前存在的虚拟环境：`conda env list`  或  `conda info --envs`
+  <img src="Python专题.assets/image-20260127121630928.png" alt="image-20260127121630928" style="zoom: 80%;" />
+
+- 创建虚拟环境：`conda create --name 虚拟环境名称 python=python版本`
+
+  > 位于安装目录下的envs目录中
+
+- 激活：`conda activate 虚拟环境名称`
+
+- 取消激活：`conda deactivate`
+
+- 删除：`conda env remove --name myenv`
+
+- 使用环境yaml环境配置文件
+
+  - 导出：`conda env export > environment.yml`
+  - 导入：`conda env create -f environment.yml`
+
+##### PyCharm
+
+
+
 ### 程序结构
+
+##### 基本结构
 
 ```python
 def 函数(参数):
     # 函数程序
+    return 返回值   # 无返回值时，返回None
 
 if __name__ == '__main__':
     # 主函数
 ```
 
+##### lambda匿名函数
+
+- 定义：`lambda 参数1,参数2,参数3: 单行函数内容`
+
+- 传递函数参数
+  ```python
+  # 多用于将一个临时函数作为参数传递
+  def printFuncResult(func):
+      result = func(1,2,3)
+      print(result)
+  
+  printFuncResult(lambda x,y,z: x+y+z)
+  ```
+
+  
 
 
 
 
 
+### 程序流程控制
 
-### 循环
+##### 循环
 
 ```python
 for i in range(n):
@@ -25,11 +95,38 @@ for i in range(x,y):
     
 for i in range(x,y,k):
     # 循环变量范围：每次循环后x+=k，且x<y或x>y
+    
+while 条件判断:
+else: 退出循环处理
+
+# 除了用break终止循环，也可用continue结束本轮循环
 ```
 
+##### 条件分支
 
+- if-else
+  ```python
+  if condition_1:
+      statement_block_1
+  elif condition_2:
+      statement_block_2
+  else:
+      statement_block_3
+  ```
 
+- match-case
 
+  > python 3.10增加
+
+  ```python
+  match subject:
+      case subject的值1|值2|值3:
+          <action_1>
+      case _:
+          <action_wildcard>
+  ```
+
+  
 
 
 
@@ -126,13 +223,9 @@ class 类名称():
 
 
 
-
-
-
-
 ### 集合
 
-> https://www.runoob.com/python3/python3-set.html#setmethod
+> https://www.runoob.com/python3/python3-set.html
 
 ##### 1. 定义
 
@@ -140,22 +233,22 @@ class 类名称():
 
 - 直接赋值：`set = {value1, value2, ……}`
 
-- 转换：set = set(object)
+- 转换：`set = set(object)`
 
-  > 若是列表/字符串，则还可以去重
+  > 若是object列表/字符串，则还可以去重
 
 ##### 2. 基本操作
 
-- 增
-- 删
-- 改
-- 查
+- 增：
+  - `s.add(x)`
+  - `s.update(添加对象)`， 可以是多个列表、元组、字典等
+
+- 删：`s.remove(x)` 或 `s.discard(x)`，后者在x不存在时不会报错
+- 判存：`x in set`
+- 计数：`len(s)`
+- 清空：`s.clear()`
 
 ##### 3. 集合运算
-
-
-
-
 
 
 
@@ -165,7 +258,7 @@ class 类名称():
 >
 > 求长度：`len(list)`
 
-##### 1. 基本操作
+##### 基本操作
 
 - 定义
   - 一般初始化：`list = []`
@@ -190,25 +283,25 @@ class 类名称():
 '''
 ```
 
-##### 2. 访问
+##### 访问
 
-- 访问单个元素：`list[index]`
+- 访问单个元素：`list[index]`，索引从0开始
 
 - 访问多个元素：`list[x,y]`
 
   > 返回一个**新的list**，元素为 **list[x]~list[y-1]**
+  
+- **遍历**：`for i,value in enumerate(list)`
 
-##### 3. **扩展操作
+##### **扩展操作
 
 - **将输入的字符串转换成列表：`list = input().split("分隔符",分割次数)`
 
   > .split()：默认分隔符为 **空格**，默认分割次数为 每次
 
-- 列表相加：
-
 - **元素求和：`sum(list)`
 
-- **判断是否包含元素：`值 in list`
+- 判断**是否包含**元素：`值 in list`
 
   > 这种方式省去了自己编写查找算法的工作，适合简单列表的处理
 
@@ -224,7 +317,7 @@ class 类名称():
 
   > 借助集合即可去重
 
-##### 4. 二维数组
+##### 二维数组
 
 - 初始化
 
@@ -248,15 +341,11 @@ class 类名称():
 
 
 
-
-
-
-
 ### 字典
 
 > 字典
 
-##### 1. 定义
+##### 定义
 
 - 一般定义：`dic = {k:v, k:v}`
 
@@ -274,27 +363,33 @@ class 类名称():
   	hash[data] = index
   ```
 
-##### 2. 访问：`dic[key]` 
+##### 基本操作
 
-##### 3. 基本操作
-
+- 访问：`dic[key]` 
 - 添加：`dic[new_key] = new_value`
 - 删除
   - 删除单个：`del dic[key]`
   - 清空：`dic.clear()`
+  
+- 遍历
+  ```python
+  for key in dict:
+  
+  for value in dict.values():
+      
+  for k,v in dict.items():
+  ```
+
+  
 
 
-##### 4. 相关方法
+##### 相关方法
 
 - 求长度：`len(dic)`
 
 - **根据key查找：`dic.get(key)`
 
   > 与访问不同的是，若无目标k-v，则返回None
-
-
-
-
 
 
 
@@ -317,226 +412,204 @@ class ListNode:
 
 ```
 
-##### 循环输入创建
 
 
+### 异常处理
 
+> 本质：if 异常
 
+- 基础捕获
+  ```python
+  try:
+      # 可能出错的代码
+  except:
+      # 处理方式
+  ```
 
+- 针对捕获
+  ```python
+  except 异常名称 as 存储捕获到的异常的变量名:
+      # 处理方式
+  
+  # 捕获多个
+  except (异常1,异常2,...) as 存储捕获到的异常的变量名:
+  
+  # 全部异常的通用名：Exception
+  ```
 
-
-# 查找
-
-##### 0. 数据结构
-
-- Python
+- 示例
 
   ```python
-  class Data_struct:
-      def __init__(self,key):
-          self.key = key
-  
-      def getKey(self):
-          return self.key
-      def setKey(self,key):
-          self.key = key
+  try:
+      # 测试代码
+  except Exception as e:
+      print("异常：",e)
+  else: print("无异常")
+  finally: print("无论是否有异常，都执行")
   ```
 
-- C#
+- 函数调用中异常的传递性
+  <img src="Python专题.assets/image-20260129154227343.png" alt="image-20260129154227343" style="zoom:50%;" />
 
-  ```c#
-  class DataStruct    // 数据单元
-      {
-          int key;
-          int data_int;
-          string data_string;
-      }
-  ```
 
-  
 
-##### 1. 顺序查找
-
-- Python
-
-  ```python
-  def sequential(list,key):
-      func_type("顺序查找",1)
-      index = len(list)-1
-      # 查找条件
-      while list[index].key != key:
-          index = index-1
-          if index<0: break
-      print("目标数据序号为：" + str(index))
-      func_type("顺序查找",0)
-      return
-  ```
-
-  
-
-##### 2. 折半查找
-
-- Python
-
-  ```python
-  def half(list,key):
-      func_type("折半查找", 1)
-      low = 0
-      high = len(list)
-      while low<=high:
-          mid = int((low + high)/2)
-          if list[mid].key == key:
-              break
-          # 判断向左还是向右，若key非整型则需要修改判断条件
-          else:
-              if key<mid: high = mid-1
-              else: low = mid+1
-      if low>high: mid = -1
-      print("目标数据序号为：" + str(index))
-      func_type("折半查找", 0)
-      return
-  ```
-
-  
-
-##### 3. 借助于哈希表的查找
-
-- Lua
-
-  ```lua
-  -- 给予存储表构造搜索用哈希表，通过值返回序号
-  function create_searchHash(list)
-      local search_hash = {}
-      for i,v in ipairs(list) do
-          search_hash[v] = i
-      end
-      return search_hash
-  end
-  
-  function search(hash,v)
-      index = hash[v]
-      if index then print(v .. "的序号为：" .. index)
-      else print(v.."不在表之中")
-      end
-  end
-  ```
-
-  
+------
 
 
 
 
 
-# 排序
 
-<img src="C:\Users\14563\AppData\Roaming\Typora\typora-user-images\image-20220320153612886.png" alt="image-20220320153612886" style="zoom: 33%;" />
+
+# 算法
+
+### 查找
+
+##### 数据结构
+
+```python
+class Data_struct:
+    def __init__(self,key):
+        self.key = key
+
+    def getKey(self):
+        return self.key
+    def setKey(self,key):
+        self.key = key
+```
+
+##### 顺序查找
+
+```python
+def sequential(list,key):
+    func_type("顺序查找",1)
+    index = len(list)-1
+    # 查找条件
+    while list[index].key != key:
+        index = index-1
+        if index<0: break
+    print("目标数据序号为：" + str(index))
+    func_type("顺序查找",0)
+    return
+```
+
+##### 折半查找
+
+```python
+def half(list,key):
+    func_type("折半查找", 1)
+    low = 0
+    high = len(list)
+    while low<=high:
+        mid = int((low + high)/2)
+        if list[mid].key == key:
+            break
+        # 判断向左还是向右，若key非整型则需要修改判断条件
+        else:
+            if key<mid: high = mid-1
+            else: low = mid+1
+    if low>high: mid = -1
+    print("目标数据序号为：" + str(index))
+    func_type("折半查找", 0)
+    return
+```
+
+
 
 ### 插入排序
 
-##### 0. 数据结构
+##### 数据结构
 
-- Python
+```python
+class Data_struct:
+    data = None
+    def __init__(self,key):
+        self.key = key
 
-  ```python
-  class Data_struct:
-      data = None
-      def __init__(self,key):
-          self.key = key
-  
-      def getKey(self):
-          return self.key
-      def setKey(self,key):
-          self.key = key
-  ```
+    def getKey(self):
+        return self.key
+    def setKey(self,key):
+        self.key = key
+```
 
-##### 1. 直接插入
+##### 直接插入
 
-- Python
+```python
+def direct_insert(list):
+    func_type("直接插入排序",1)
+    # 将当前对象插入到前面的有序列表中
+    for i in range(len(list)):
+        if i>0 and list[i].key<list[i-1].key:
+            temp = list[i]
+            for j in range(i - 1, -1, -1):
+                if temp.key < list[j].key:
+                    list[j + 1] = list[j]
+                    list[j] = temp
+    print("\n排序结果：",end="")
+    for data in list:
+        print(data.key, end=" ")
+    func_type("直接插入排序",0)
+    return
+```
 
-  ```python
-  def direct_insert(list):
-      func_type("直接插入排序",1)
-      # 将当前对象插入到前面的有序列表中
-      for i in range(len(list)):
-          if i>0 and list[i].key<list[i-1].key:
-              temp = list[i]
-              for j in range(i - 1, -1, -1):
-                  if temp.key < list[j].key:
-                      list[j + 1] = list[j]
-                      list[j] = temp
-      print("\n排序结果：",end="")
-      for data in list:
-          print(data.key, end=" ")
-      func_type("直接插入排序",0)
-      return
-  ```
+##### 折半插入
 
-##### 2. 折半插入
+```python
+def half_insert(list):
+    func_type("折半插入排序", 1)
+    length = len(list)
+    if length <= 1:
+        print("无需排序")
+        return
+    for i in range(length):
+        if i>0 and list[i].key < list[i-1].key:
+            temp = list[i]
+            low = 0
+            high = i-1
+            # 找到当前排序对象正确位置，类似折半查找
+            # 不同的是，折半排序的正确位置是导致循环条件不成立的low
+            while low <= high:
+                mid = int((low + high)/2)
+                if list[mid].key == temp.key: break
+                elif list[mid].key > temp.key:
+                    high = mid - 1
+                else:
+                    low = mid + 1
+            # 将较大项向后移
+            for j in range(i - 1, low - 1, -1):
+                list[j + 1] = list[j]
+            list[low] = temp
+    print("\n排序结果：", end="")
+    for data in list:
+        print(data.key, end=" ")
+    func_type("折半插入排序", 0)
+    return
+```
 
-- Python
+##### 希尔排序
 
-  ```python
-  def half_insert(list):
-      func_type("折半插入排序", 1)
-      length = len(list)
-      if length <= 1:
-          print("无需排序")
-          return
-      for i in range(length):
-          if i>0 and list[i].key < list[i-1].key:
-              temp = list[i]
-              low = 0
-              high = i-1
-              # 找到当前排序对象正确位置，类似折半查找
-              # 不同的是，折半排序的正确位置是导致循环条件不成立的low
-              while low <= high:
-                  mid = int((low + high)/2)
-                  if list[mid].key == temp.key: break
-                  elif list[mid].key > temp.key:
-                      high = mid - 1
-                  else:
-                      low = mid + 1
-              # 将较大项向后移
-              for j in range(i - 1, low - 1, -1):
-                  list[j + 1] = list[j]
-              list[low] = temp
-      print("\n排序结果：", end="")
-      for data in list:
-          print(data.key, end=" ")
-      func_type("折半插入排序", 0)
-      return
-  ```
-
-##### 3. 链表插入
-
-##### 4. 希尔排序
-
-- Python
-
-  ```python
-  def shell(list):
-      func_type("希尔排序", 1)
-      length = len(list)
-      # 初始步长
-      gap = length // 2
-      while gap > 0:
-          for i in range(gap, length):
-              # 把小的挪到前面
-              for j in range(i,gap-1,-gap):
-                  temp = list[j]
-                  if list[j-gap].key > temp.key:
-                      list[j] = list[j-gap]
-                      list[j-gap] = temp
-          # 得到新的步长
-          gap = gap // 2
-      print("\n排序结果：", end="")
-      for data in list:
-          print(data.key, end=" ")
-      func_type("希尔排序", 0)
-      return
-  ```
-
-  
+```python
+def shell(list):
+    func_type("希尔排序", 1)
+    length = len(list)
+    # 初始步长
+    gap = length // 2
+    while gap > 0:
+        for i in range(gap, length):
+            # 把小的挪到前面
+            for j in range(i,gap-1,-gap):
+                temp = list[j]
+                if list[j-gap].key > temp.key:
+                    list[j] = list[j-gap]
+                    list[j-gap] = temp
+        # 得到新的步长
+        gap = gap // 2
+    print("\n排序结果：", end="")
+    for data in list:
+        print(data.key, end=" ")
+    func_type("希尔排序", 0)
+    return
+```
 
 
 
@@ -573,15 +646,10 @@ class ListNode:
       quick_sort(nums, left+1, end)
   ```
 
-  
 
 
 
 ### 选择排序
-
-##### 1. 直接选择
-
-##### 2. 堆选择
 
 
 
@@ -590,18 +658,6 @@ class ListNode:
 
 
 ### 基数排序
-
-------
-
-
-
-
-
-
-
-# 动态规划
-
-### 基础原型：背包问题
 
 
 
