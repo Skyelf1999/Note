@@ -92,7 +92,7 @@
 
 
 
-# AI开发
+# AI开发准备
 
 ### 技术栈
 
@@ -275,13 +275,134 @@
 
     ![image-20260202154402139](AI模型基础.assets/image-20260202154402139.png)
 
+- 在WSL中安装pip：`sudo apt install python3-pip`，使用`pip -V`验证
+
 - Python
 
+  - 所需包：ollama、streamlit
+
+##### 基于WSL的Pycharm工程
+
+- 创建工程
+  <img src="AI模型基础.assets/image-20260203122007044.png" alt="image-20260203122007044" style="zoom:50%;" />
+  <img src="AI模型基础.assets/image-20260203122347657.png" alt="image-20260203122347657" style="zoom:80%;" />
+- 选择解释器、虚拟环境
+  <img src="AI模型基础.assets/image-20260203124638623.png" alt="image-20260203124638623" style="zoom:80%;" />
 
 
 
 
 
+
+
+# AI开发常用包
+
+### ollama
+
+> 在使用时，请先启动ollama服务，例如：
+>
+> - windows：`ollama serve`
+> - Linux：`sudo systemctl start ollama`
+
+##### 基础API
+
+- 查看可用模型：`ollama.list()`
+  ```python
+  # 输出Ollama管理的模型
+  def ollamaPrintModels():
+      response = ollama.list()
+  
+      print("-" * 60)
+      print(f"已下载的模型列表 (共 {len(response.models)} 个)")
+      print("-" * 60)
+  
+      for i, model in enumerate(response.models, 1):
+          # 格式化时间
+          modified_time = model.modified_at.strftime("%Y-%m-%d %H:%M:%S")
+  
+          # 转换文件大小为GB
+          size_gb = model.size / (1024 ** 3)
+  
+          print(f"\n[{i}] 模型名称: {model.model}")
+          # print(f"   • 最后修改: {modified_time}")
+          print(f"   • 文件大小: {size_gb:.2f} GB")
+          # print(f"   • 模型格式: {model.details.format}")
+          # print(f"   • 模型系列: {model.details.family}")
+          print(f"   • 参数量级: {model.details.parameter_size}")
+          # print(f"   • 量化级别: {model.details.quantization_level}")
+          # print(f"   • 摘要哈希: {model.digest[:16]}...")
+  
+      print("\n")
+  ```
+- 创建client对象：`client = ollama.Client(host='http://localhost:11434')`
+
+  - 列出可用模型：`client.list()`
+
+  - 显示指定模型的信息：`client.show('模型名')`
+
+  - 显示正在运行的模型：`client.ps()`
+
+  - chat对话方式
+    ```python
+    modelName = 'deepseek-coder:6.7b'
+    # messages参数是一个列表，其中每个字典至少包含role、content两个字段
+    # role：user、assistant、system
+    msgList = [ {'role':'user', 'content':'请介绍下自己'} ]
+    response = client.chat(model=modelName, messages=msgList)
+    # 输出回复
+    print(response['messaage']['content'])
+    ```
+
+    
+
+
+
+
+### streamlit
+
+##### 示例程序
+
+> 通过 `streamlit hello` 启动，代码循环执行
+
+##### 基础方法
+
+- 查看版本：`streamlit.__version__`
+
+##### 内容绘制
+
+> 需要在终端中，通过 `streamlit run 文件名.py` 运行
+>
+> 绘制内容按顺序从上到下（除了chat_input）
+
+![image-20260204110147496](AI模型基础.assets/image-20260204110147496.png)
+
+- 标题：`st.title("标题")`
+
+- 基本段落内容：`st.write("段落内容")`
+
+- 分割线：`st.divider()`
+
+- 聊天框：`msg = st.chat_input("请输入文本：")`
+
+  > 默认渲染在最底部，输入完内容后按enter，该方法会返回输入的内容
+
+- 聊天信息：`st.chat_message('身份').markdown('内容')`
+
+  - 身份：user、assistant、ai、human
+
+- 等待提示
+  ```python
+  with st.spinner("等待中……"): # 当以下内容时间间隔过长时，显示提示内容，否则渲染以下内容
+      time.sleep(3)
+      if msg: st.chat_message('ai').markdown('你输入的内容为：' + msg)
+      else: st.chat_message('ai').markdown("请输入聊天内容")
+  ```
+
+  
+
+  
+
+  
 
 
 
