@@ -19,9 +19,13 @@
 
 - 工程虚拟环境：在工程目录下，`python -m venv 虚拟环境目录名称`
 
-  > 之后，pip调用的是Scripts下的pip，引入的包安装在Lib中
+  > 之后，pip调用的是Scripts下的pip，引入的包安装在 **Lib/site-packages** 中
 
   ![image-20260127093331150](Python专题.assets/image-20260127093331150.png)
+  
+- 激活虚拟环境：`.venv\Scripts\activate`
+
+  > 注意：每次进入工程都需要进行激活，尤其是在同时安装了Anaconda进行环境管理的条件下，很可能进入后默认是使用的Anaconda管理的虚拟环境
 
 ##### Anaconda
 
@@ -30,11 +34,28 @@
 - 当前存在的虚拟环境：`conda env list`  或  `conda info --envs`
   <img src="Python专题.assets/image-20260127121630928.png" alt="image-20260127121630928" style="zoom: 80%;" />
 
-- 创建虚拟环境：`conda create --name 虚拟环境名称 python=python版本`
+- **虚拟环境保存位置**
 
-  > 位于安装目录下的envs目录中
+  > 建议修改
+
+  - 查看：`conda info` 所显示的信息中，envs directories的内容，第一个是当前用户专属的环境目录
+
+  - 修改配置文件：`conda config --add envs_dirs 新的位置路径`
+
+- **创建虚拟环境**：`conda create --name 虚拟环境名称 python=3.12`
+
+  ```shell
+  # 不安装默认包
+  conda create --name myenv python=3.12 --no-default-packages
+  ```
+
+  
 
 - 激活：`conda activate 虚拟环境名称`
+
+  > 激活后，可以用`python -V` 、`pip -V` 等命令验证，并在该环境中安装包
+
+- 查看当前虚拟环境安装的包：`conda list`
 
 - 取消激活：`conda deactivate`
 
@@ -45,11 +66,44 @@
   - 导出：`conda env export > environment.yml`
   - 导入：`conda env create -f environment.yml`
 
+- conda包管理
+  ```shell
+  # 查看已安装的包
+  conda list
+  
+  # 更新numpy
+  conda update numpy
+  
+  # 搜索可用的numpy版本
+  conda search numpy
+  
+  # 使用conda指定版本
+  conda install numpy=1.24.0
+  ```
+
+- 在虚拟环境中使用pip进行包管理
+
+  - 确认当前使用的是虚拟环境中的工具
+    ```shell
+    # 在激活的环境下执行
+    where python
+    where pip
+    python -m pip --version  # 查看当前python使用的pip
+    ```
+
+  - 若未使用
+
+    - 检查虚拟环境下的环境变量：``
+    - 虚拟环境完整性有问题，强制重装pip：`conda install --force-reinstall pip`
+
+
 ##### PyCharm
 
+- 添加现有虚拟环境
 
 
-### 程序结构
+
+### 程序基础
 
 ##### 基本结构
 
@@ -76,7 +130,10 @@ if __name__ == '__main__':
   printFuncResult(lambda x,y,z: x+y+z)
   ```
 
-  
+
+##### print
+
+- 
 
 
 
@@ -223,7 +280,7 @@ class 类名称():
 
 
 
-### 集合
+### 集合{}
 
 > https://www.runoob.com/python3/python3-set.html
 
@@ -252,7 +309,7 @@ class 类名称():
 
 
 
-### 列表
+### 列表[]
 
 > 和字符串复合输出时要先转换成字符串：`str(list)`
 >
@@ -341,7 +398,7 @@ class 类名称():
 
 
 
-### 字典
+### 字典{}
 
 > 字典
 
@@ -655,10 +712,7 @@ def shell(list):
 
 ### 二路归并
 
-
-
-### 基数排序
-
+------
 
 
 
@@ -666,8 +720,13 @@ def shell(list):
 
 
 
+# 常用包
 
+### Pip包管理
 
+- 安装：`pip install 包名称`
+- 查看：`pip list`
+- 删除：`pip uninstall xxx`
 
 
 
