@@ -207,9 +207,7 @@
     ```python
     # 运行python代码
     ```
-    
     ````
-
     
 
 
@@ -289,6 +287,14 @@
 - 选择解释器、虚拟环境
   <img src="AI模型基础.assets/image-20260203124638623.png" alt="image-20260203124638623" style="zoom:80%;" />
 
+### 云端部署
+
+##### 基本架构
+
+
+
+------
+
 
 
 
@@ -334,6 +340,7 @@
   
       print("\n")
   ```
+  
 - 创建client对象：`client = ollama.Client(host='http://localhost:11434')`
 
   - 列出可用模型：`client.list()`
@@ -342,18 +349,73 @@
 
   - 显示正在运行的模型：`client.ps()`
 
-  - chat对话方式
+##### AI对话
+
+- **对话消息类Message**
+
+  - 角色：`role: str`
+
+  - 对话内容：`content: Optional[str] = None`
+
+  - 思考过程：`thinking: Optional[str] = None`
+
+    > 只有在思考可用时展示
+
+  - 图片：`images: Optional[Sequence[Image]] = None`
+
+    > 用于多模态模型
+
+  - 可用的工具：`tool_name: Optional[str] = None`
     ```python
-    modelName = 'deepseek-coder:6.7b'
-    # messages参数是一个列表，其中每个字典至少包含role、content两个字段
-    # role：user、assistant、system
-    msgList = [ {'role':'user', 'content':'请介绍下自己'} ]
-    response = client.chat(model=modelName, messages=msgList)
-    # 输出回复
-    print(response['messaage']['content'])
+    # 和可用工具相关的对象
+    class ToolCall(SubscriptableBaseModel):
+    """
+    Model tool calls.
+    """
+    
+    class Function(SubscriptableBaseModel):
+      """
+      Tool call function.
+      """
+    
+      name: str
+      'Name of the function.'
+    
+      arguments: Mapping[str, Any]
+      'Arguments of the function.'
+    
+    function: Function
+    'Function to be called.'
+    
+    tool_calls: Optional[Sequence[ToolCall]] = None
+    """
+    Tools calls to be made by the model.
+      """
     ```
 
-    
+- 对话方式：`client.chat`
+
+  ```python
+  modelName = 'deepseek-coder:6.7b'
+  
+  # messages参数是一个列表，其中每个字典至少包含role、content两个字段
+  # role：user、assistant、system
+  msgList = [ {'role':'user', 'content':'请介绍下自己'} ]
+  
+  # 获取AI回复
+  response = client.chat(model=modelName, messages=msgList)
+  
+  # 输出回复
+  print(response['message']['content'])
+  ```
+
+  - 必要参数：ai模型名称、消息内容列表 `[ {'role':'user', 'content':'请介绍下自己'} ]`
+  - 返回内容：`response : Union[ChatResponse, Iterator[ChatResponse]]`
+    - 消息对象：`response['message'] : Message`
+
+- 是
+
+​    
 
 
 
@@ -382,27 +444,59 @@
 
 - 分割线：`st.divider()`
 
-- 聊天框：`msg = st.chat_input("请输入文本：")`
+- **聊天框**：`msg = st.chat_input("请输入文本：")`
 
-  > 默认渲染在最底部，输入完内容后按enter，该方法会返回输入的内容
+  > 默认渲染在最底部
+  >
+  > **输入完内容后按enter，会重新执行python代码**
 
-- 聊天信息：`st.chat_message('身份').markdown('内容')`
+- **聊天信息**：`st.chat_message('身份').markdown('内容')`
 
   - 身份：user、assistant、ai、human
 
 - 等待提示
   ```python
   with st.spinner("等待中……"): # 当以下内容时间间隔过长时，显示提示内容，否则渲染以下内容
-      time.sleep(3)
-      if msg: st.chat_message('ai').markdown('你输入的内容为：' + msg)
-      else: st.chat_message('ai').markdown("请输入聊天内容")
+      # 通过Ollama获取大模型回答
+              # time.sleep(2)
+              modelName = st.session_state['modelName']
+              msgList = [{'role': 'user', 'content': msgStr}]
+              response = st.session_state['aiClient'].chat(model=modelName, messages=msgList)
+              role = response['message']['role']
+              answer = "[回复{}]\t你输入的内容为：{}".format(chatCount(),response['message']['content'])
+              st.chat_message(role).markdown(answer)
   ```
 
+##### 状态保存
+
+> streamlit会循环执行python文件，因此无法用全局变量等方式保存状态、数据
+
+- 数据结构：`st.session_state`
+
+  > 字典
+
+  - 存：`st.session_state['key'] = value`
+  - 取：`st.session_state['key']`
   
+- 使用示例：显示历史消息
+  ```python
+  # 显示历史消息
+  def showHistoryMessage():
+      history = st.session_state['historyMessage']
+      for msg in history:  # msg = {'role':role, 'message':msg}
+          st.chat_message(msg['role']).markdown(msg['message'])
+  ```
 
-  
-
-  
 
 
+
+
+
+
+
+# AI应用开发
+
+### 开发经验
+
+##### 基本对话步骤
 
