@@ -594,7 +594,7 @@ from langchain_community.llms import Tongyi
 
 
 
-api_key = "sk-87e0f0d175884f01b15c7ebc98a41db8"
+api_key = "sk-xxx"
 # 创建内存记忆对象，初始化模型
 memory = ConversationBufferMemory(return_messages=True)
 modelName = "qwen-turbo"
