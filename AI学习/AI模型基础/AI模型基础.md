@@ -289,9 +289,39 @@
 
 ### 云端部署
 
-##### 基本架构
+##### 基本技术架构
 
+<img src="AI模型基础.assets/image-20260206145823770.png" alt="image-20260206145823770" style="zoom:40%;" />
 
+##### LangChain框架
+
+> python.langchain.com/docs
+
+- 框架特点
+  <img src="AI模型基础.assets/image-20260206150044625.png" alt="image-20260206150044625" style="zoom:40%;" />
+
+- 相关包
+
+  - langchain：主要用于构建、管理基于语言模型的应用程序
+  - langchain_community：社区办，更多扩展性工具
+  - dashscope：构建、管理数据科学和机器学习应用，提供丰富的数据可视化和模型部署工具
+
+  ```shell
+  # 下载命令：使用清华镜像源
+  pip install langchain -i https://pypi.tuna.tsinghua.edu.cn/simple
+  pip install langchain-community -i https://pypi.tuna.tsinghua.edu.cn/simple
+  pip install dashscope -i https://pypi.tuna.tsinghua.edu.cn/simple
+  ```
+
+- 主要组件
+  <img src="AI模型基础.assets/image-20260206150648159.png" alt="image-20260206150648159" style="zoom:50%;" />
+
+- 是
+
+##### 阿里云百炼平台
+
+- 创建API key：秘钥管理
+- 创建智能体应用：应用开发 - 应用管理 - 创建应用
 
 ------
 
@@ -410,14 +440,80 @@
   ```
 
   - 必要参数：ai模型名称、消息内容列表 `[ {'role':'user', 'content':'请介绍下自己'} ]`
-  - 返回内容：`response : Union[ChatResponse, Iterator[ChatResponse]]`
+  - 返回值response：ChatResponse类对象
     - 消息对象：`response['message'] : Message`
+    
+      > 主要成员：角色role、回复内容content
+    
+      ```python
+      class Message(SubscriptableBaseModel):
+        """
+        Chat message.
+        """
+      
+        role: str
+        "Assumed role of the message. Response messages has role 'assistant' or 'tool'."
+      
+        content: Optional[str] = None
+        'Content of the message. Response messages contains message fragments when streaming.'
+      
+        thinking: Optional[str] = None
+        'Thinking content. Only present when thinking is enabled.'
+      
+        images: Optional[Sequence[Image]] = None
+        """
+        Optional list of image data for multimodal models.
+      
+        Valid input types are:
+      
+        - `str` or path-like object: path to image file
+        - `bytes` or bytes-like object: raw image data
+      
+        Valid image formats depend on the model. See the model card for more information.
+        """
+      
+        tool_name: Optional[str] = None
+        'Name of the executed tool.'
+      
+        class ToolCall(SubscriptableBaseModel):
+          """
+          Model tool calls.
+          """
+      
+          class Function(SubscriptableBaseModel):
+            """
+            Tool call function.
+            """
+      
+            name: str
+            'Name of the function.'
+      
+            arguments: Mapping[str, Any]
+            'Arguments of the function.'
+      
+          function: Function
+          'Function to be called.'
+      
+        tool_calls: Optional[Sequence[ToolCall]] = None
+        """
+        Tools calls to be made by the model.
+        """
+      ```
 
-- 是
+- 示例
+  ```python
+  # 通过Ollama获取大模型回答
+  def getResponseByOllama(msg: str) -> ollama.ChatResponse:
+      modelName = st.session_state['modelName']   # 'deepseek-r1:1.5b'
+      msgList = [{'role': 'user', 'content': msgStr}]
+      print(f"发送内容：{msg}；\n\t\t等待{modelName}回复中………………………………")
+      response = st.session_state['aiClient'].chat(model=modelName, messages=msgList)
+      return response
+  ```
 
-​    
+  
 
-
+ 
 
 
 ### streamlit
@@ -488,6 +584,32 @@
   ```
 
 
+
+### langchain
+
+```python
+from langchain_classic.chains import ConversationChain
+from langchain_classic.memory import ConversationBufferMemory
+from langchain_community.llms import Tongyi
+
+
+
+api_key = "sk-87e0f0d175884f01b15c7ebc98a41db8"
+# 创建内存记忆对象，初始化模型
+memory = ConversationBufferMemory(return_messages=True)
+modelName = "qwen-turbo"
+model = Tongyi(model=modelName, api_key=api_key)
+chain = ConversationChain(llm=model, memory=memory)
+
+
+
+def getResponseByLangchain(input: str) -> str:
+    # 发送用户输入的内容
+    print(f"发送内容：{input}；\n\t\t等待{modelName}回复中………………………………\n")
+    # 该invoke定义在langchain_classic.chains.conversation.base
+    response = chain.invoke({"input": input})
+    return response["response"]
+```
 
 
 
