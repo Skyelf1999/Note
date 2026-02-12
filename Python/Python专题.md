@@ -382,6 +382,8 @@ class 类名称():
 - 去重：`list(set(list_origin))`
 
   > 借助集合即可去重
+  
+- 列表合并：`listA + listB`
 
 ##### 二维数组
 
@@ -446,7 +448,6 @@ class 类名称():
   for k,v in dict.items():
   ```
 
-  
 
 
 ##### 相关方法
@@ -734,12 +735,12 @@ def shell(list):
 ### Pip包管理
 
 - 查看使用的下资源：`pip config list`
-  | 国内镜像名称 | 镜像源地址                                            |
-  | :----------- | :---------------------------------------------------- |
-  | 清华大学     | `https://pypi.tuna.tsinghua.edu.cn/simple`            |
-  | 阿里云       | `https://mirrors.aliyun.com/pypi/simple`              |
-  | 华为云       | `https://repo.huaweicloud.com/repository/pypi/simple` |
-  | 豆瓣         | `https://pypi.doubanio.com/simple`                    |
+  | 国内镜像名称 | 镜像源地址                                          |
+  | :----------- | :-------------------------------------------------- |
+  | 清华大学     | https://pypi.tuna.tsinghua.edu.cn/simple            |
+  | 阿里云       | https://mirrors.aliyun.com/pypi/simple              |
+  | 华为云       | https://repo.huaweicloud.com/repository/pypi/simple |
+  | 豆瓣         | https://pypi.doubanio.com/simple                    |
 
 - 安装：`pip install 包名称 -i 指定的镜像源地址`
 - 查看：`pip list`

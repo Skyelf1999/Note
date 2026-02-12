@@ -10,11 +10,7 @@
 
 # 大模型基础理论
 
-##### 训练阶段
-
-- 预训练：补全
-- 监督微调 SFT
-- 基于反馈的强化学习 RLHF
+### 大模型
 
 ##### 大模型特点
 
@@ -30,6 +26,22 @@
 - 多模态模型：计算机视觉模型、音频处理模型……
 
   > 同时处理来自**不同感知通道**的数据（文本、图像、音频、视频）
+
+### 训练
+
+##### 训练阶段
+
+- 预训练：补全
+- 监督微调 SFT
+- 基于反馈的强化学习 RLHF
+
+##### 训练思想与方法
+
+- zero-shot思想：训练阶段不存在与测试阶段完全相同的类别，但模型可用已有知识推广到新类别上
+- few-shot思想：学医一定类别的大量数据后，对于新的类别，只需少样本学习
+  <img src="AI模型基础.assets/image-20260211152654805.png" alt="image-20260211152654805" style="zoom:40%;" />
+
+### 工作
 
 ##### 工作流程 
 
@@ -333,6 +345,68 @@
 
 # AI开发常用包
 
+### OpenAI
+
+> 各种调用示例可查询：https://bailian.console.aliyun.com/cn-beijing/?spm=5176.29619931.J_SEsSjsNv72yRuRFS2VknO.2.74cd10d7jEOgb6&tab=model#/model-market
+>
+> 基本流程：获取Clinet，调用模型，处理结果
+
+##### 环境变量保存API
+
+> 配置后，使用openai库时，不必再定义api_key
+
+- windows：在环境变量-用户变量中新建`OPENAI_API_KEY`
+- mac
+  - `open .zshrc`
+  - `export OPENAI_API_KEY="xxxxx"`
+
+##### 基本调用
+
+- 获取客户端：`client = OpenAI(api_key='', base_url='https://dashscope.aliyuncs.com/compatible-mode/v1')`
+
+  - api_key：若配置了环境变量，可省略
+  - base_url：模型服务商（OpenAI、阿里云、腾讯云等）的API接入地址
+
+    > 若要使用本地ollama管理的模型，可修改为：http://localhost:11434/v1
+
+- 调用模型：`client.chat.completions.create -> ChatCompletion | Stream[ChatCompletionChunk]`
+  ```python
+  '''
+  	messages:list
+      	每条消息具有role、content两个字段
+          role：system设定ai行为、上下文、规则，assistant代表ai回答，user为用户
+          可通过messages传递历史消息
+      stream控制返回值是否是流式输出
+  		True：返回Stream[ChatCompletionChunk]类型
+  		False：返回ChatCompletion类型
+  '''
+  response = client.chat.completions.create(
+      model="qwen-max",
+      messages=[
+          {"role": "system", "content": "You are a helpful assistant."},
+          {"role": "user", "content": "你是谁？"},
+      ],
+      stream=True
+  )
+  ```
+  
+- 处理结果
+
+  - 对于流式输出Stream[ChatCompletionChunk]
+    ```python
+    '''
+    	end：每一段之间用什么分隔
+    	flush：是否立刻刷新缓冲区
+    '''
+    for chunk in response:
+        print(chunk.choices[0].delta.content, end="", flush=True)
+    ```
+    
+  - 对于普通返回ChatCompletion类型
+    <img src="AI模型基础.assets/image-20260211120309227.png" alt="image-20260211120309227" style="zoom: 67%;" />
+
+
+
 ### ollama
 
 > 在使用时，请先启动ollama服务，例如：
@@ -439,12 +513,15 @@
   print(response['message']['content'])
   ```
 
-  - 必要参数：ai模型名称、消息内容列表 `[ {'role':'user', 'content':'请介绍下自己'} ]`
+  - 必要参数：
+
+    - ai模型名称`model:str` 
+    - 消息内容列表 `[ {'role':'user', 'content':'请介绍下自己'} ]`
   - 返回值response：ChatResponse类对象
     - 消息对象：`response['message'] : Message`
-    
+
       > 主要成员：角色role、回复内容content
-    
+
       ```python
       class Message(SubscriptableBaseModel):
         """
@@ -502,7 +579,10 @@
 
 - 示例
   ```python
-  # 通过Ollama获取大模型回答
+  # 创建ollama的client对象
+  if 'ollamaClient' not in st.session_state: st.session_state['aiClient'] = ollama.Client(host='http://localhost:11434')
+  
+  # 通过Ollama获取本地大模型回答
   def getResponseByOllama(msg: str) -> ollama.ChatResponse:
       modelName = st.session_state['modelName']   # 'deepseek-r1:1.5b'
       msgList = [{'role': 'user', 'content': msgStr}]
@@ -510,7 +590,7 @@
       response = st.session_state['aiClient'].chat(model=modelName, messages=msgList)
       return response
   ```
-
+  
   
 
  
@@ -587,6 +667,12 @@
 
 ### langchain
 
+##### 环境变量保存API
+
+- 在环境变量-用户变量中新建`DASHSCOPE_API_KEY`
+
+##### 基本对话方式
+
 ```python
 from langchain_classic.chains import ConversationChain
 from langchain_classic.memory import ConversationBufferMemory
@@ -622,3 +708,12 @@ def getResponseByLangchain(input: str) -> str:
 
 ##### 基本对话步骤
 
+
+
+### 提示词prompt
+
+##### 通过提示词进行简单训练
+
+- 可通过提供给模型简单的案例和其分类，进行情景化训练
+
+##### Json数据格式
