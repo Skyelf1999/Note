@@ -29,6 +29,8 @@
 
 ##### Anaconda
 
+- 镜像源配置参考：https://mirrors4.tuna.tsinghua.edu.cn/help/anaconda/
+
 - 版本验证：`conda --verison`
 
 - 当前存在的虚拟环境：`conda env list`  或  `conda info --envs`
@@ -48,8 +50,6 @@
   # 不安装默认包
   conda create --name myenv python=3.12 --no-default-packages
   ```
-
-  
 
 - 激活：`conda activate 虚拟环境名称`
 
@@ -757,7 +757,38 @@ def shell(list):
 
 
 
+### json
 
+##### 基础操作
+
+- 转换为json字符串：`json.dumps(data, ensure_ascii=False)`
+  ```python
+  pyDict = {
+      "age": 11,
+      "name": "skyelf",
+      "data": ["1", "牢詹", "3", 100],
+      "obj": {"身高":100, "体重":70}
+  }
+  print(f"Python字典-->json对象：{json.dumps(pyDict,ensure_ascii=False)}")
+  
+  pyList = [
+      { "name": "sky", "age": 20, "game": "dota" },
+      { "name": "earth", "age": 21, "game": "elden ring" },
+      { "name": "light", "age": 22, "game": "genshin" }
+  ]
+  print(f"Python列表-->json数组：{json.dumps(pyList,ensure_ascii=False)}")
+  ```
+
+- 转换为Python字典或列表：`json.loads(jsonStr)`
+  ```python
+  pyData = json.loads(jsonStr_2)
+  print(type(pyData)) # 判断类型，是字典还是列表
+  print(pyData)
+  ```
+
+  
+
+s 
 
 
 
