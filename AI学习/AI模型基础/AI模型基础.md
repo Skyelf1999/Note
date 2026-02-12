@@ -38,7 +38,7 @@
 ##### 训练思想与方法
 
 - zero-shot思想：训练阶段不存在与测试阶段完全相同的类别，但模型可用已有知识推广到新类别上
-- few-shot思想：学医一定类别的大量数据后，对于新的类别，只需少样本学习
+- few-shot思想：学习一定类别的大量数据后，对于新的类别，只需少样本学习
   <img src="AI模型基础.assets/image-20260211152654805.png" alt="image-20260211152654805" style="zoom:40%;" />
 
 ### 工作
@@ -375,13 +375,14 @@
   	messages:list
       	每条消息具有role、content两个字段
           role：system设定ai行为、上下文、规则，assistant代表ai回答，user为用户
-          可通过messages传递历史消息
+          【可通过messages传递历史消息】
+          
       stream控制返回值是否是流式输出
   		True：返回Stream[ChatCompletionChunk]类型
   		False：返回ChatCompletion类型
   '''
   response = client.chat.completions.create(
-      model="qwen-max",
+      model="qwen-max",	# 可调用本地ollama管理的模型
       messages=[
           {"role": "system", "content": "You are a helpful assistant."},
           {"role": "user", "content": "你是谁？"},
@@ -404,6 +405,12 @@
     
   - 对于普通返回ChatCompletion类型
     <img src="AI模型基础.assets/image-20260211120309227.png" alt="image-20260211120309227" style="zoom: 67%;" />
+  
+- 使用示例
+  ```python
+  ```
+
+  
 
 
 
@@ -712,8 +719,94 @@ def getResponseByLangchain(input: str) -> str:
 
 ### 提示词prompt
 
+##### json数据格式
+
+- json对象：key是字符串，value可以是数字、字符串、列表、json对象或数组
+
+  > json中，字符串必须用双引号
+
+  ```json
+  {
+      "age": 11,
+      "name": "xxx",
+      "list": ["1", "2", "3"],
+      "obj": {"身高":100, "体重":70}
+  }
+  ```
+
+- json数组：[{}, {}, {}, ...]
+
 ##### 通过提示词进行简单训练
 
 - 可通过提供给模型简单的案例和其分类，进行情景化训练
+- 用符号突出重点：[]、{}、'''内容'''
 
-##### Json数据格式
+##### 典型任务1：特征提取与分类
+
+- 基本思路：通过示例对模型进行简单的工作训练，再进行任务
+
+- **信息提取**：让模型提取数据信息，**用特定格式回复**（比如json）
+
+- 实现示例
+
+  ```python
+  # 示例数据，用于预训练
+  exampleClass = ['分类1', '分类2', ...]
+  exampleData = [
+      {"question":"", "answer": {}或list },
+  	...
+  ]
+  
+  messages = []	# 保存对话内容
+  
+  # 初始化模型设定
+  messages.append(
+      {
+  		'role':'system', 
+       	'content':f'你是……我给你信息，你将信息内容按照{exampleClass分类}，并以json字符串输出，若部分内容无法分类，则类别归为"无法分类"'
+      }
+  )
+  
+  
+  # 载入示例数据
+  for data in exampleData:
+  	messages.append({'role':'user', 'content':data['question']})
+  	messages.append(
+   		{
+  			'role':'user', 
+            	'content': json.dumps(data['answer'], ensure_ascii=False)
+  		}
+  	)
+  
+      
+  # 新的问题
+  newQuestions = ["问题1", "问题2", ...]
+  
+  
+  #循环调用api，向模型提问
+  for q in newQuestions:
+      response = client.chat.completions.create(
+     	 	model="qwen-max",
+      	messages=messages + [ {'role':'user', 'content':f'按照之前的示例，请总结信息：{q}'} ]
+      )
+      print(response.choices[0].message.content)
+  ```
+
+  
+
+
+
+##### 典型任务2：模式匹配
+
+
+
+
+
+
+
+
+
+
+
+
+
