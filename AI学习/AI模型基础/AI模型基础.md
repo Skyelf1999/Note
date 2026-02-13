@@ -47,6 +47,17 @@
 
   > 自回归：根据概率最大原则不断生成，直到输出特殊token或输出长度达到阈值
 
+##### 常用大模型
+
+|                      |                                    |
+| -------------------- | ---------------------------------- |
+| qwen-max             | 阿里通义千问2.5系列llm             |
+| qwen3-max            | Qwen3，聊天模型                    |
+| qwen-plus            | Qwen3，可切换思考、非思考模式      |
+| qwen-turbo           | Qwen3，参数量更少                  |
+| deepseek-r1:1.5b、8b | ds本地蒸馏模型                     |
+| deepseek-coder:6.7b  | ds本地蒸馏模型，更擅长回答编程问题 |
+
 
 
 ### AI Agent 智能体
@@ -385,10 +396,13 @@
 - 调用模型：`client.chat.completions.create -> ChatCompletion | Stream[ChatCompletionChunk]`
   ```python
   '''
+  	model：模型名
+  	
   	messages:list
       	每条消息具有role、content两个字段
           role：system设定ai行为、上下文、规则，assistant代表ai回答，user为用户
           【可通过messages传递历史消息】
+          【可通过system情景化ai】
           
       stream控制返回值是否是流式输出
   		True：返回Stream[ChatCompletionChunk]类型
@@ -418,7 +432,7 @@
     
   - 对于普通返回ChatCompletion类型
     <img src="AI模型基础.assets/image-20260211120309227.png" alt="image-20260211120309227" style="zoom: 67%;" />
-  
+
 - 使用示例
   ```python
   ```
@@ -537,6 +551,8 @@
 
     - ai模型名称`model:str` 
     - 消息内容列表 `[ {'role':'user', 'content':'请介绍下自己'} ]`
+    
+      > 通过该参数，传递历史消息
   - 返回值response：ChatResponse类对象
     - 消息对象：`response['message'] : Message`
 
@@ -689,29 +705,126 @@
 
 <img src="AI模型基础.assets/image-20260213091547361.png" alt="image-20260213091547361" style="zoom:30%;" />
 
-##### 相关开发环境
+##### 基础介绍
 
-```python
-# 基础包langchain，新版本中部分内容在langchain_classic中
-from langchain_classic.chains import ConversationChain
-from langchain_classic.memory import ConversationBufferMemory
+- 主要支持
 
-# 社区支持包langchain_community，提供更多第三方模型的调用
-from langchain_community.llms import Tongyi
+  - 大预言模型LLM
+  - 聊天模型：应用范畴的划分，专为对话功能优化的LLM
+  - 文本嵌入模型：将文本转换为向量
 
-# ollama支持包，支持调用ollama管理的本地模型
-import langchain-ollama
-
-# 其他：阿里云通义千问sdk【dashscope】，轻量向量数据库【chromadb】
-```
-
-
+- 开发工具
+  ```python
+  # 基础包langchain，新版本中部分内容在langchain_classic中
+  from langchain_classic.chains import ConversationChain
+  from langchain_classic.memory import ConversationBufferMemory
+  
+  # 社区支持包langchain_community，提供更多第三方模型的调用
+  from langchain_community.llms import Tongyi
+  
+  # ollama支持包，支持调用ollama管理的本地模型
+  import langchain-ollama
+  
+  # 其他：阿里云通义千问sdk【dashscope】，轻量向量数据库【chromadb】
+  ```
 
 ##### 环境变量保存API
 
 - 在环境变量-用户变量中新建`DASHSCOPE_API_KEY`
 
-##### 基本对话方式
+##### 获取模型model
+
+- 获取第三方模型
+  ```python
+  from langchain_community.llms import Tongyi
+  
+  modelName = "qwen-max"  # plus,turbo,max
+  api_key = os.getenv("OPENAI_API_KEY")
+  modelOnline = Tongyi(model=modelName, api_key=api_key)
+  ```
+
+- 获取本地Ollama管理的模型
+  ```python
+  from langchain_ollama import OllamaLLM
+  modelOllama = OllamaLLM(model="deepseek-r1:1.5b")
+  ```
+
+##### 调用：大模型对话
+
+- 一次性返回完整结果：`res:str = model.invoke(input:str)`
+
+  > 在完整返回前，会阻塞代码
+
+- 流式输出：`model.stream(input=input:str)`
+  ```python
+  response = modelOllama.stream(input=input)
+  
+  for chunk in response:
+      print(chunk, end="|",flush=True)
+  
+  # ||||您好|！|我是|由|中国的|深度|求|索|（|Deep|Seek|）|公司|开发|的|智能|助手|Deep|Seek|-R|1|。|有关|模型|和|产品的|详细|内容|请|参考|官方|文档|。||
+  ```
+
+- 示例
+  ```python
+  from langchain_community.llms import Tongyi
+  import os
+  
+  # 初始化模型
+  api_key = os.getenv("OPENAI_API_KEY")
+  modelName = "qwen-max"  # plus,turbo,max
+  modelOnline = Tongyi(model=modelName, api_key=api_key)
+  
+  def getResponseByLangchain(input: str) -> str:
+      # response = modelOnline.invoke(input)
+      # print(response)
+      response = modelOllama.stream(input=input)
+      for chunk in response:
+          print(chunk, end="|",flush=True)
+  ```
+
+##### 调用：聊天模型Chat Model
+
+- 主要消息类
+
+  - AIMessage：AI的输出消息，类似于openai库中的assistant角色
+  - HumanMessage：用户消息
+  - SystemMessage：用于指定模型具体所处的情形，类似于openai库中的system
+
+- 使用示例
+  ```python
+  # 测试langchain的聊天模型功能
+  from langchain_community.chat_models.tongyi import ChatTongyi
+  from langchain_ollama import ChatOllama
+  from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
+  import os
+  
+  # 初始化模型
+  api_key = os.getenv("DASHSCOPE_API_KEY")
+  chatOnline = ChatTongyi(model="qwen3-max",api_key=api_key)
+  chatOllama = ChatOllama(model="deepseek-r1:1.5b")
+  
+  
+  # 构造消息
+  messages = [
+      SystemMessage(content="你是一位猫娘，每次回复的句尾都要加上'喵~'的语气助词"),
+      HumanMessage(content="请问你能告诉我今天的天气吗？"),
+      AIMessage(content="今天是晴天喵~最适合晒太阳了喵~"),
+      HumanMessage(content="请介绍下你自己吧，顺便报告一下今天的日期")
+  ]
+  
+  
+  # 流式输出
+  response = chatOnline.stream(input=messages)
+  for chunk in response:
+      print(chunk.content, end='', flush=True)
+  ```
+
+  
+
+
+
+
 
 ```python
 from langchain_classic.chains import ConversationChain
