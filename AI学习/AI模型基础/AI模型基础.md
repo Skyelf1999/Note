@@ -27,8 +27,6 @@
 
   > 同时处理来自**不同感知通道**的数据（文本、图像、音频、视频）
 
-### 训练
-
 ##### 训练阶段
 
 - 预训练：补全
@@ -39,9 +37,7 @@
 
 - zero-shot思想：训练阶段不存在与测试阶段完全相同的类别，但模型可用已有知识推广到新类别上
 - few-shot思想：学习一定类别的大量数据后，对于新的类别，只需少样本学习
-  <img src="AI模型基础.assets/image-20260211152654805.png" alt="image-20260211152654805" style="zoom:40%;" />
-
-### 工作
+  <img src="AI模型基础.assets/image-20260211152654805.png" alt="image-20260211152654805" style="zoom:40%;" /> 
 
 ##### 工作流程 
 
@@ -51,19 +47,11 @@
 
   > 自回归：根据概率最大原则不断生成，直到输出特殊token或输出长度达到阈值
 
-------
 
 
-
-
-
-
-
-# AI Agent 智能体
+### AI Agent 智能体
 
 > 基于LLM
-
-### 基础
 
 ##### 功能构成
 
@@ -73,28 +61,53 @@
   - 任务反思与改进
 - 工具：为Agent配备工具API，如计算器、搜索工具、代码执行器等
 - 行动
+- 工作流程：感知、规划、行动、观察
 
-##### 工作流程
+##### 框架与策略分析
 
-感知、规划、行动、观察
+- Plan-and-execute
+  - 特点：先规划，然后执行，适用于复杂项目管理、多步决策
+
+
+- Self-Ask
+
+- Thinking and Self-Refection
+
+- 增强框架ReAct
+
+  > https://react-lm.github.io/
+  >
+  > 推理+行动（搜索）
 
 
 
-### 框架与策略分析
+### RAG
 
-##### Plan-and-execute
+##### 基本概念
 
-- 特点：先规划，然后执行，适用于复杂项目管理、多步决策
+- LLM大模型缺陷：知识过时、缺失，幻觉问题（生成看似合理但错误的结果），数据安全性
+- 解决方案：**检索** 增强生成技术RAG，检索外部文档提升质量
+- 工作流程：将用户问题与检索出的外部资料一并提供给模型
+  ![image-20260213094659163](AI模型基础.assets/image-20260213094659163.png)
+  ![image-20260213095440272](AI模型基础.assets/image-20260213095440272.png)
+  - 索引
+    - 提取文本，切分为标准长度的文本块chunk
+    - 进行嵌入**向量化embedding**，存储于向量数据库vector database
+  - 检索：将用户输入**向量化**，通过相似度匹配，从数据库中**检索出最相关的chunk**
+  - 生成：将检索到的chunk与用户输入，**共同构成生成用的prompt**，输入LLM进行生成
 
-##### Self-Ask
+##### 文本向量化
 
-##### Thinking and Self-Refection
+- 基本概念：将文字的**语义信息**，转换为**固定长度的数字列表**，使模型能够理解含义并进行相似度计算
+  <img src="AI模型基础.assets/image-20260213135110517.png" alt="image-20260213135110517" style="zoom:33%;" />
 
-##### 增强框架ReAct
+  - 维度：维度越高，向量中的数字越多，特征越细致
 
-> https://react-lm.github.io/
->
-> 推理+行动（搜索）
+- 余弦相似度算法：
+  $$
+  \cos<\overrightarrow{a},\overrightarrow{b}>={{\displaystyle\frac{\overrightarrow{a}\bullet\overrightarrow{b}}{\left|\left|a\right|\right|\times\left|\left|b\right|\right|}}}
+  $$
+  
 
 ------
 
@@ -414,7 +427,7 @@
 
 
 
-### ollama
+### 模型管理ollama
 
 > 在使用时，请先启动ollama服务，例如：
 >
@@ -603,7 +616,7 @@
  
 
 
-### streamlit
+### 简易对话应用开发streamlit
 
 ##### 示例程序
 
@@ -673,6 +686,26 @@
 
 
 ### langchain
+
+<img src="AI模型基础.assets/image-20260213091547361.png" alt="image-20260213091547361" style="zoom:30%;" />
+
+##### 相关开发环境
+
+```python
+# 基础包langchain，新版本中部分内容在langchain_classic中
+from langchain_classic.chains import ConversationChain
+from langchain_classic.memory import ConversationBufferMemory
+
+# 社区支持包langchain_community，提供更多第三方模型的调用
+from langchain_community.llms import Tongyi
+
+# ollama支持包，支持调用ollama管理的本地模型
+import langchain-ollama
+
+# 其他：阿里云通义千问sdk【dashscope】，轻量向量数据库【chromadb】
+```
+
+
 
 ##### 环境变量保存API
 
@@ -796,7 +829,7 @@ def getResponseByLangchain(input: str) -> str:
 
 
 
-##### 典型任务2：模式匹配
+##### 典型任务2：文本匹配
 
 
 
