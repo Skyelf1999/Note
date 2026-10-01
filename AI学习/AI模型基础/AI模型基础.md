@@ -178,7 +178,7 @@
 
 ### 本地化部署
 
-##### 后端管理框架Ollama
+##### *后端管理框架Ollama
 
 > https://ollama.com/
 
@@ -323,6 +323,8 @@
 - 选择解释器、虚拟环境
   <img src="AI模型基础.assets/image-20260203124638623.png" alt="image-20260203124638623" style="zoom:80%;" />
 
+
+
 ### 云端部署
 
 ##### 基本技术架构
@@ -336,7 +338,7 @@
 - 框架特点
   <img src="AI模型基础.assets/image-20260206150044625.png" alt="image-20260206150044625" style="zoom:40%;" />
 
-- 相关包
+- 相关python包
 
   - langchain：主要用于构建、管理基于语言模型的应用程序
   - langchain_community：社区办，更多扩展性工具
@@ -352,8 +354,6 @@
 - 主要组件
   <img src="AI模型基础.assets/image-20260206150648159.png" alt="image-20260206150648159" style="zoom:50%;" />
 
-- 是
-
 ##### 阿里云百炼平台
 
 - 创建API key：秘钥管理
@@ -367,7 +367,7 @@
 
 
 
-# AI开发常用包
+# Python环境AI开发常用包
 
 ### OpenAI
 
@@ -855,7 +855,7 @@ def getResponseByLangchain(input: str) -> str:
 
 
 
-# AI应用开发
+# Python环境 AI应用开发
 
 ### 开发经验
 
@@ -882,7 +882,7 @@ def getResponseByLangchain(input: str) -> str:
 
 - json数组：[{}, {}, {}, ...]
 
-##### 通过提示词进行简单训练
+##### 通过提示词进行简单预训练
 
 - 可通过提供给模型简单的案例和其分类，进行情景化训练
 - 用符号突出重点：[]、{}、'''内容'''
@@ -937,9 +937,6 @@ def getResponseByLangchain(input: str) -> str:
       )
       print(response.choices[0].message.content)
   ```
-
-  
-
 
 
 ##### 典型任务2：文本匹配
