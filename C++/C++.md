@@ -13,6 +13,9 @@
 ##### vscode
 
 - 所需插件
+	- C/C++
+	- C/C++ DevTools
+	- C/C++ Extension Pack
 - 
 
 
