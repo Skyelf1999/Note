@@ -325,7 +325,7 @@
 
 
 
-### 云端部署
+### 云端部署方法
 
 ##### 基本技术架构
 
@@ -338,7 +338,7 @@
 - 框架特点
   <img src="AI模型基础.assets/image-20260206150044625.png" alt="image-20260206150044625" style="zoom:40%;" />
 
-- 相关python包
+- **相关python包**
 
   - langchain：主要用于构建、管理基于语言模型的应用程序
   - langchain_community：社区办，更多扩展性工具
